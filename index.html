@@ -3,6 +3,13 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="icon" type="image/svg+xml" href="favicon.svg" />
+    <link rel="manifest" href="manifest.webmanifest" />
+    <meta name="description" content="经典街机小游戏合集：俄罗斯方块、贪吃蛇、2048、打砖块，纯前端、打开即玩、支持键盘与触摸。" />
+    <meta name="theme-color" content="#0f1117" />
+    <meta property="og:title" content="小游戏官网 · 经典街机合集" />
+    <meta property="og:description" content="纯前端经典街机小游戏合集，打开即玩。" />
+    <meta property="og:type" content="website" />
 <title>小游戏官网 · 经典街机合集</title>
 <style>
   :root {
@@ -60,7 +67,7 @@
   .nav-links a:hover { color: var(--text); }
 
   /* Hero */
-  .hero { text-align: center; padding: 84px 0 56px; }
+  .hero { text-align: center; padding: 36px 0 22px; }
   .hero .badge {
     display: inline-block; padding: 6px 14px; border-radius: 999px;
     font-size: 13px; color: var(--text-dim);
@@ -68,7 +75,7 @@
     margin-bottom: 22px;
   }
   .hero h1 {
-    font-size: clamp(32px, 6vw, 56px); line-height: 1.15; font-weight: 800;
+    font-size: clamp(28px, 4.4vw, 44px); line-height: 1.1; font-weight: 800;
     letter-spacing: -0.5px;
   }
   .hero h1 .grad {
@@ -76,23 +83,23 @@
     -webkit-background-clip: text; background-clip: text; color: transparent;
   }
   .hero p {
-    margin: 20px auto 0; max-width: 560px;
-    color: var(--text-dim); font-size: 16px; line-height: 1.7;
+    margin: 14px auto 0; max-width: 620px;
+    color: var(--text-dim); font-size: 15px; line-height: 1.6;
   }
-  .hero .eyebrow { font-size: 14px; color: var(--accent); font-weight: 600; margin-bottom: 12px; }
+  .hero .eyebrow { font-size: 13px; color: var(--accent); font-weight: 600; margin-bottom: 10px; }
 
   /* 游戏网格 */
   .section-title {
     display: flex; align-items: baseline; justify-content: space-between;
-    margin: 8px 0 26px;
+    margin: 4px 0 20px;
   }
   .section-title h2 { font-size: 24px; font-weight: 700; }
   .section-title span { color: var(--text-dim); font-size: 14px; }
 
   .grid {
     display: grid; gap: 22px;
-    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
-    padding-bottom: 70px;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    padding-bottom: 48px;
   }
   .card {
     position: relative;
@@ -141,7 +148,7 @@
 
   @media (max-width: 560px) {
     .nav-links { display: none; }
-    .hero { padding: 60px 0 40px; }
+    .hero { padding: 40px 0 26px; }
   }
 </style>
 </head>
@@ -159,8 +166,8 @@
   <main class="wrap">
     <section class="hero">
       <div class="eyebrow">CLASSIC ARCADE COLLECTION</div>
-      <h1>经典 <span class="grad">街机小游戏</span><br />合集</h1>
-      <p>无需下载、打开即玩。精选 4 款经久不衰的休闲游戏，键盘与鼠标轻松上手，随时找回童年乐趣。</p>
+      <h1>经典 <span class="grad">街机小游戏</span>合集</h1>
+      <p>无需下载、打开即玩。精选 4 款经久不衰的休闲游戏，键盘 / 鼠标 / 触摸轻松上手。</p>
     </section>
 
     <section id="games">
@@ -213,7 +220,7 @@
       <p style="color:var(--text-dim);line-height:1.8;max-width:680px;font-size:15px;">
         本站是一组纯前端（HTML + CSS + JavaScript / Canvas）实现的休闲小游戏合集，
         每个游戏都是独立的单文件页面，无需任何服务器或安装即可在浏览器中直接游玩。
-        所有代码均经过逻辑测试，支持键盘与鼠标操作，并适配移动端屏幕。
+        支持键盘、鼠标与移动端触摸操作，桌面与手机均可畅玩。
       </p>
     </section>
   </main>
@@ -223,5 +230,12 @@
       © 2026 小游戏官网 · 用 ❤️ 与代码打造 · <a href="#games">回到顶部 ↑</a>
     </div>
   </footer>
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('sw.js').catch(() => {});
+            });
+        }
+    </script>
 </body>
 </html>

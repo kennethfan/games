@@ -3,76 +3,17 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/svg+xml" href="favicon.svg" />
+    <link rel="manifest" href="manifest.webmanifest" />
+    <meta name="description" content="2048 小游戏：滑动合并相同数字拼到 2048，纯前端、支持键盘与触摸、打开即玩。" />
+    <meta name="theme-color" content="#0f1117" />
+    <link rel="stylesheet" href="assets/common.css" />
+    <script src="assets/common.js"></script>
     <title>2048</title>
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
+    
 
-        body {
-            background: #1a1a2e;
-            color: #eee;
-            font-family: 'Microsoft YaHei', sans-serif;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
-        }
 
-        .game-container {
-            background: #16213e;
-            padding: 22px;
-            border-radius: 15px;
-            box-shadow: 0 0 30px rgba(0, 150, 255, 0.3);
-        }
-
-        .header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 16px;
-        }
-
-        .title {
-            font-size: 44px;
-            font-weight: bold;
-            color: #00d4ff;
-            letter-spacing: 1px;
-        }
-
-        .scores { display: flex; gap: 10px; }
-
-        .score-box {
-            background: #0f3460;
-            padding: 8px 18px;
-            border-radius: 8px;
-            text-align: center;
-            min-width: 70px;
-        }
-
-        .score-label { font-size: 12px; color: #9db4d6; }
-        .score-value { font-size: 22px; font-weight: bold; color: #ffd93d; }
-
-        .toolbar {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 14px;
-        }
-
-        .hint { font-size: 13px; color: #9db4d6; }
-        .hint b { color: #00d4ff; }
-
-        button {
-            background: #e94560;
-            color: white;
-            border: none;
-            padding: 10px 18px;
-            border-radius: 8px;
-            cursor: pointer;
-            font-size: 15px;
-            font-weight: bold;
-            transition: all 0.3s;
-        }
-        button:hover { background: #ff6b6b; transform: translateY(-2px); }
 
         .board {
             position: relative;
@@ -80,16 +21,17 @@
             grid-template-columns: repeat(4, 80px);
             grid-template-rows: repeat(4, 80px);
             gap: 12px;
-            background: #0f3460;
+            background: #161922;
             padding: 12px;
             border-radius: 10px;
+            touch-action: none;        /* 防止移动端滑动时页面滚动 */
         }
 
         /* 底层灰色背景格 */
         .cell {
             width: 80px;
             height: 80px;
-            background: #16213e;
+            background: #11162a;
             border-radius: 6px;
         }
 
@@ -136,7 +78,7 @@
         .overlay {
             position: absolute;
             inset: 0;
-            background: rgba(15, 52, 96, 0.85);
+            background: rgba(15, 17, 23, 0.9);
             border-radius: 10px;
             display: flex;
             flex-direction: column;
@@ -145,31 +87,29 @@
             z-index: 10;
         }
         .overlay-title { font-size: 40px; font-weight: bold; color: #ffd93d; margin-bottom: 12px; }
-        .overlay-sub { font-size: 18px; color: #eee; margin-bottom: 20px; }
+        .overlay-sub { font-size: 18px; color: #e8ecf4; margin-bottom: 20px; }
+
+        /* 移动端：整体缩放以适配小屏 */
+        @media (max-width: 460px) {
+            .game-wrap { transform: scale(0.86); transform-origin: top center; }
+        }
     </style>
 </head>
 <body>
-    <div class="game-container">
-        <div class="header">
-            <div class="title">2048</div>
-            <div class="scores">
-                <div class="score-box">
-                    <div class="score-label">得分</div>
-                    <div class="score-value" id="score">0</div>
-                </div>
-                <div class="score-box">
-                    <div class="score-label">最佳</div>
-                    <div class="score-value" id="best">0</div>
-                </div>
-            </div>
-        </div>
+    <div class="game-wrap">
+        <header class="game-header">
+            <a class="back-link" href="index.html">← 返回</a>
+            <h1 class="game-title">2048</h1>
+            <button id="soundBtn" class="icon-btn" onclick="toggleSound()">🔊</button>
+        </header>
 
-        <div class="toolbar">
-            <div class="hint">方向键 / <b>WASD</b> 滑动合并，凑出 <b>2048</b>！</div>
-            <button onclick="restart()">重新开始</button>
-        </div>
+        <section class="game-stats">
+            <div class="stat"><div class="stat-label">得分</div><div class="stat-value stat-score" id="score">0</div></div>
+            <div class="stat"><div class="stat-label">最佳</div><div class="stat-value stat-best" id="best">0</div></div>
+        </section>
 
-        <div class="board" id="board">
+        <section class="game-stage">
+            <div class="board" id="board">
             <!-- 16 个背景格 -->
             <div class="cell"></div><div class="cell"></div><div class="cell"></div><div class="cell"></div>
             <div class="cell"></div><div class="cell"></div><div class="cell"></div><div class="cell"></div>
@@ -184,6 +124,12 @@
                 <button onclick="restart()">再来一局</button>
             </div>
         </div>
+        </section>
+
+        <footer class="game-toolbar">
+            <div class="hint">方向键 / <b>WASD</b> 滑动合并，凑出 <b>2048</b>（手机可滑动）</div>
+            <button onclick="restart()">重新开始</button>
+        </footer>
     </div>
 
     <script>
@@ -207,19 +153,19 @@
         let over = false;
         let animating = false;           // 动画期间锁，防止快速连按导致状态错乱
 
-        // 经典 2048 配色
+        // 蓝紫家族渐变配色（与全站统一）
         const COLORS = {
-            2: '#eee4da', 4: '#ede0c8', 8: '#f2b179', 16: '#f59563',
-            32: '#f67c5f', 64: '#f65e3b', 128: '#edcf72', 256: '#edcc61',
-            512: '#edc850', 1024: '#edc53f', 2048: '#edc22e'
+            2: '#34406e', 4: '#3f4d8c', 8: '#4d5fb0', 16: '#6c8cff',
+            32: '#7d7bff', 64: '#9b6cff', 128: '#b56cff', 256: '#c56cd0',
+            512: '#d76cae', 1024: '#ff7eb6', 2048: '#ff9ec4'
         };
 
         function colorFor(v) {
-            if (v === 0) return '#16213e';
+            if (v === 0) return '#11162a';
             return COLORS[v] || '#3c3a32';
         }
         function textColor(v) {
-            return v > 0 && v <= 4 ? '#776e65' : '#f9f6f2';
+            return '#eef2ff';
         }
         function fontSizeFor(v) {
             const len = String(v).length;
@@ -339,6 +285,7 @@
             // 更新分数
             score += gained;
             scoreEl.textContent = score;
+            if (gained > 0) beep(520, 0.08, 'square', 0.04);
             if (score > best) {
                 best = score;
                 bestEl.textContent = best;
@@ -365,9 +312,11 @@
             if (!won && board.flat().includes(2048)) {
                 won = true;
                 showOverlay('你赢了!', '按方向键继续挑战');
+                beep(880, 0.18, 'square', 0.05);
             } else if (!hasMoves(board)) {
                 over = true;
                 showOverlay('游戏结束', '得分 ' + score);
+                beep(120, 0.3, 'sawtooth', 0.05);
             }
         }
 
@@ -406,10 +355,34 @@
             }
         });
 
+        // 触摸滑动支持（移动端）
+        const boardEl = document.getElementById('board');
+        let touchX = 0, touchY = 0;
+        boardEl.addEventListener('touchstart', (e) => {
+            touchX = e.changedTouches[0].clientX;
+            touchY = e.changedTouches[0].clientY;
+        }, { passive: true });
+        boardEl.addEventListener('touchend', (e) => {
+            const dx = e.changedTouches[0].clientX - touchX;
+            const dy = e.changedTouches[0].clientY - touchY;
+            const ax = Math.abs(dx), ay = Math.abs(dy);
+            if (Math.max(ax, ay) < 24) return;      // 滑动阈值
+            if (ax > ay) move(dx > 0 ? 'right' : 'left');
+            else move(dy > 0 ? 'down' : 'up');
+        }, { passive: true });
+
+
         // 初始化
         try { best = parseInt(localStorage.getItem('best2048') || '0', 10); } catch (e) {}
         bestEl.textContent = best;
         init();
+    </script>
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('sw.js').catch(() => {});
+            });
+        }
     </script>
 </body>
 </html>

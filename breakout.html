@@ -3,112 +3,55 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/svg+xml" href="favicon.svg" />
+    <link rel="manifest" href="manifest.webmanifest" />
+    <meta name="description" content="打砖块小游戏：移动挡板反弹小球击碎所有砖块，支持鼠标与触摸。" />
+    <meta name="theme-color" content="#0f1117" />
+    <link rel="stylesheet" href="assets/common.css" />
+    <script src="assets/common.js"></script>
     <title>打砖块</title>
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
+    
 
-        body {
-            background: #1a1a2e;
-            color: #eee;
-            font-family: 'Microsoft YaHei', sans-serif;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
-        }
 
-        .game-container {
-            background: #16213e;
-            padding: 22px;
-            border-radius: 15px;
-            box-shadow: 0 0 30px rgba(0, 150, 255, 0.3);
-        }
-
-        .header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 16px;
-        }
-
-        .title {
-            font-size: 40px;
-            font-weight: bold;
-            color: #00d4ff;
-            letter-spacing: 1px;
-        }
-
-        .stats { display: flex; gap: 10px; }
-
-        .stat-box {
-            background: #0f3460;
-            padding: 8px 16px;
-            border-radius: 8px;
-            text-align: center;
-            min-width: 64px;
-        }
-        .stat-label { font-size: 12px; color: #9db4d6; }
-        .stat-value { font-size: 20px; font-weight: bold; }
-        .score-v { color: #ffd93d; }
-        .level-v { color: #00d4ff; }
-        .lives-v { color: #ff6b6b; letter-spacing: 2px; }
-
-        .toolbar {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 14px;
-        }
-        .hint { font-size: 13px; color: #9db4d6; }
-        .hint b { color: #00d4ff; }
-
-        button {
-            background: #e94560;
-            color: white;
-            border: none;
-            padding: 10px 18px;
-            border-radius: 8px;
-            cursor: pointer;
-            font-size: 15px;
-            font-weight: bold;
-            transition: all 0.3s;
-        }
-        button:hover { background: #ff6b6b; transform: translateY(-2px); }
 
         canvas {
             display: block;
-            background: #0f3460;
+            background: #0a0a15;
             border-radius: 10px;
             cursor: none;
+            touch-action: none;
+            max-width: 100%;
+            height: auto;
+        }
+
+        @media (max-width: 520px) {
+            .game-wrap { max-width: 94vw; }
         }
     </style>
 </head>
 <body>
-    <div class="game-container">
-        <div class="header">
-            <div class="title">打砖块</div>
-            <div class="stats">
-                <div class="stat-box">
-                    <div class="stat-label">得分</div>
-                    <div class="stat-value score-v" id="score">0</div>
-                </div>
-                <div class="stat-box">
-                    <div class="stat-label">关卡</div>
-                    <div class="stat-value level-v" id="level">1</div>
-                </div>
-                <div class="stat-box">
-                    <div class="stat-label">生命</div>
-                    <div class="stat-value lives-v" id="lives">♥♥♥</div>
-                </div>
-            </div>
-        </div>
+    <div class="game-wrap">
+        <header class="game-header">
+            <a class="back-link" href="index.html">← 返回</a>
+            <h1 class="game-title">打砖块</h1>
+            <button id="soundBtn" class="icon-btn" onclick="toggleSound()">🔊</button>
+        </header>
 
-        <div class="toolbar">
-            <div class="hint"><b>← →</b> / <b>A D</b> / 鼠标移动挡板，<b>空格</b>或点击发射，<b>P</b> 暂停</div>
+        <section class="game-stats">
+            <div class="stat"><div class="stat-label">得分</div><div class="stat-value stat-score" id="score">0</div></div>
+            <div class="stat"><div class="stat-label">关卡</div><div class="stat-value" id="level">1</div></div>
+            <div class="stat"><div class="stat-label">生命</div><div class="stat-value stat-danger" id="lives">♥♥♥</div></div>
+        </section>
+
+        <section class="game-stage">
+            <canvas id="game" width="480" height="520"></canvas>
+        </section>
+
+        <footer class="game-toolbar">
+            <div class="hint"><b>← →</b> / <b>A D</b> / 鼠标移动挡板，<b>空格</b>或点击发射，<b>P</b> 暂停（触摸可拖动挡板）</div>
             <button onclick="restart()">重新开始</button>
-        </div>
-
-        <canvas id="game" width="480" height="520"></canvas>
+        </footer>
     </div>
 
     <script>
@@ -134,7 +77,7 @@
         const MAX_LIVES = 3;
 
         // 每行砖块颜色与分值
-        const ROW_COLORS = ['#f65e3b', '#f59563', '#f2b179', '#edcf72', '#9fe1cb'];
+        const ROW_COLORS = ['#b56cff', '#9b6cff', '#7d7bff', '#6c8cff', '#5ad1e6'];
         const ROW_POINTS = [50, 40, 30, 20, 10];
 
         let score, level, lives;
@@ -158,6 +101,7 @@
         function launchBall() {
             if (!ball.stuck) return;
             ball.stuck = false;
+            beep(500, 0.05, 'square', 0.04);
             // 以略微偏上的角度发射
             ball.vx = ballSpeed * 0.35;
             ball.vy = -ballSpeed * 0.94;
@@ -229,6 +173,7 @@
 
             b.alive = false;
             score += b.points;
+            beep(300 + b.points, 0.05, 'square', 0.04);
             return true;
         }
 
@@ -257,8 +202,10 @@
             if (ball.y - BALL_R > H) {
                 lives--;
                 updateHud();
+                beep(200, 0.15, 'sawtooth', 0.05);
                 if (lives <= 0) {
                     state = 'over';
+                beep(120, 0.3, 'sawtooth', 0.05);
                 } else {
                     state = 'ready';
                     resetBall();
@@ -310,13 +257,13 @@
             }
 
             // 挡板
-            ctx.fillStyle = '#00d4ff';
+            ctx.fillStyle = '#6c8cff';
             ctx.fillRect(paddle.x, paddle.y, paddle.w, paddle.h);
 
             // 球
             ctx.beginPath();
             ctx.arc(ball.x, ball.y, BALL_R, 0, Math.PI * 2);
-            ctx.fillStyle = '#fff';
+            ctx.fillStyle = '#e8ecf4';
             ctx.fill();
 
             // 遮罩文字
@@ -330,14 +277,14 @@
         }
 
         function overlayText(title, sub) {
-            ctx.fillStyle = 'rgba(15, 52, 96, 0.7)';
+            ctx.fillStyle = 'rgba(15, 17, 23, 0.8)';
             ctx.fillRect(0, 0, W, H);
             ctx.fillStyle = '#ffd93d';
             ctx.font = 'bold 30px Microsoft YaHei, sans-serif';
             ctx.textAlign = 'center';
             ctx.fillText(title, W / 2, H / 2 - 10);
             if (sub) {
-                ctx.fillStyle = '#eee';
+                ctx.fillStyle = '#e8ecf4';
                 ctx.font = '16px Microsoft YaHei, sans-serif';
                 ctx.fillText(sub, W / 2, H / 2 + 24);
             }
@@ -349,6 +296,7 @@
             draw();
             requestAnimationFrame(loop);
         }
+
 
         // ---- 输入 ----
         document.addEventListener('keydown', (e) => {
@@ -377,11 +325,34 @@
             if (state === 'ready') launchBall();
         });
 
+        // 触摸控制：拖动挡板 + 点击发射（移动端）
+        function touchPaddle(e) {
+            const rect = canvas.getBoundingClientRect();
+            const mx = (e.touches[0].clientX - rect.left) * (W / rect.width);
+            paddle.x = Math.max(0, Math.min(W - paddle.w, mx - paddle.w / 2));
+        }
+        canvas.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            touchPaddle(e);
+            if (state === 'ready') launchBall();
+        }, { passive: false });
+        canvas.addEventListener('touchmove', (e) => {
+            e.preventDefault();
+            touchPaddle(e);
+        }, { passive: false });
+
         function restart() { init(); }
 
         // 启动
         init();
         loop();
+    </script>
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('sw.js').catch(() => {});
+            });
+        }
     </script>
 </body>
 </html>
