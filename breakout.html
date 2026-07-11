@@ -15,18 +15,14 @@
 
 
 
+        .game-board { position: relative; }
+
         canvas {
-            display: block;
-            background: #0a0a15;
-            border-radius: 10px;
+            background: var(--board-bg);
             cursor: none;
-            touch-action: none;
+            display: block;
             max-width: 100%;
             height: auto;
-        }
-
-        @media (max-width: 520px) {
-            .game-wrap { max-width: 94vw; }
         }
     </style>
 </head>
@@ -45,7 +41,14 @@
         </section>
 
         <section class="game-stage">
-            <canvas id="game" width="480" height="520"></canvas>
+            <div class="game-board">
+                <canvas id="game" width="480" height="520"></canvas>
+                <div class="game-overlay" id="overlay" style="display:none;">
+                    <div class="game-overlay-title" id="overlayTitle"></div>
+                    <div class="game-overlay-sub muted" id="overlaySub"></div>
+                    <button id="overlayBtn" onclick="restart()" style="display:none;">重新开始</button>
+                </div>
+            </div>
         </section>
 
         <footer class="game-toolbar">
@@ -266,29 +269,31 @@
             ctx.fillStyle = '#e8ecf4';
             ctx.fill();
 
-            // 遮罩文字
+            // 遮罩
             if (state === 'ready') {
-                overlayText('按 空格 / 点击 发射', '');
+                setOverlay(true, '按 空格 / 点击 发射', '', 'ready', false);
             } else if (state === 'paused') {
-                overlayText('已暂停', '按 P 继续');
+                setOverlay(true, '已暂停', '按 P 继续', 'pause', false);
             } else if (state === 'over') {
-                overlayText('游戏结束', '得分 ' + score + ' · 按 R 重开');
+                setOverlay(true, '游戏结束', '得分 ' + score, 'fail', true);
+            } else {
+                setOverlay(false);
             }
         }
 
-        function overlayText(title, sub) {
-            ctx.fillStyle = 'rgba(15, 17, 23, 0.8)';
-            ctx.fillRect(0, 0, W, H);
-            ctx.fillStyle = '#ffd93d';
-            ctx.font = 'bold 30px Microsoft YaHei, sans-serif';
-            ctx.textAlign = 'center';
-            ctx.fillText(title, W / 2, H / 2 - 10);
-            if (sub) {
-                ctx.fillStyle = '#e8ecf4';
-                ctx.font = '16px Microsoft YaHei, sans-serif';
-                ctx.fillText(sub, W / 2, H / 2 + 24);
-            }
-            ctx.textAlign = 'left';
+        // 统一 DOM 遮罩（与其它游戏一致）
+        const overlayEl = document.getElementById('overlay');
+        const overlayTitleEl = document.getElementById('overlayTitle');
+        const overlaySubEl = document.getElementById('overlaySub');
+        const overlayBtnEl = document.getElementById('overlayBtn');
+        function setOverlay(show, title, sub, titleClass, showBtn) {
+            if (!show) { overlayEl.style.display = 'none'; return; }
+            overlayEl.style.display = 'flex';
+            overlayTitleEl.textContent = title;
+            overlayTitleEl.className = 'game-overlay-title ' + titleClass;
+            overlaySubEl.textContent = sub;
+            overlaySubEl.className = 'game-overlay-sub' + (titleClass === 'pause' || titleClass === 'ready' ? ' muted' : '');
+            overlayBtnEl.style.display = showBtn ? '' : 'none';
         }
 
         function loop() {

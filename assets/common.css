@@ -192,9 +192,52 @@ button:hover { filter: brightness(1.12); transform: translateY(-1px); }
   .game-toolbar .hint { order: 1; text-align: center; }
 }
 
-/* 通用移动端适配 */
+/* 统一画布 / 棋盘边框（各页无需再各自声明） */
+.game-stage canvas,
+.game-stage .board {
+  border: 2px solid var(--card-border);
+  border-radius: 10px;
+}
+
+/* ============ 统一遮罩层（游戏结束 / 暂停 / 胜利 / 就绪提示）============
+ * 四款游戏共用，避免各自重写。标题颜色用修饰类区分语义：
+ *   .fail=失败(红)  .win=胜利(黄)  .pause=暂停(蓝)  .ready=就绪(蓝) */
+.game-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(15, 17, 23, 0.88);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  border-radius: 10px;
+  z-index: 10;
+  text-align: center;
+  padding: 20px;
+  pointer-events: none;   /* 文字层不挡 canvas 交互，仅按钮可点 */
+}
+.game-overlay button { pointer-events: auto; }
+.game-overlay-title {
+  font-size: 36px;
+  font-weight: 800;
+  margin-bottom: 14px;
+}
+.game-overlay-title.fail  { color: var(--danger); }
+.game-overlay-title.win   { color: var(--best); }
+.game-overlay-title.pause { color: var(--accent); }
+.game-overlay-title.ready { color: var(--accent); }
+.game-overlay-sub {
+  font-size: 18px;
+  color: var(--best);
+  margin-bottom: 22px;
+}
+.game-overlay-sub.muted { color: var(--text-dim); }
+
+/* 通用移动端适配（统一断点 520px） */
 @media (max-width: 520px) {
-  .game-wrap { gap: 12px; }
+  .game-wrap { gap: 12px; max-width: 94vw; }
   .game-title { font-size: 22px; }
   .hint { display: none; }
+  .game-stage canvas,
+  .game-stage .board { max-width: 100%; height: auto; touch-action: none; }
 }
