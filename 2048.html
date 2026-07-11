@@ -21,7 +21,7 @@
             grid-template-columns: repeat(4, 80px);
             grid-template-rows: repeat(4, 80px);
             gap: 12px;
-            background: #161922;
+            background: var(--bg-soft);
             padding: 12px;
             border-radius: 10px;
             touch-action: none;        /* 防止移动端滑动时页面滚动 */
@@ -34,8 +34,6 @@
             background: #11162a;
             border-radius: 6px;
         }
-
-        /* 瓦片层：覆盖在背景格之上，绝对定位 */
         .tile-layer {
             position: absolute;
             inset: 12px;
@@ -75,23 +73,9 @@
             100% { transform: scale(1); }
         }
 
-        .overlay {
-            position: absolute;
-            inset: 0;
-            background: rgba(15, 17, 23, 0.9);
-            border-radius: 10px;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            z-index: 10;
-        }
-        .overlay-title { font-size: 40px; font-weight: bold; color: #ffd93d; margin-bottom: 12px; }
-        .overlay-sub { font-size: 18px; color: #e8ecf4; margin-bottom: 20px; }
-
-        /* 移动端：整体缩放以适配小屏 */
-        @media (max-width: 460px) {
-            .game-wrap { transform: scale(0.86); transform-origin: top center; }
+        /* 移动端：棋盘缩放以适配小屏（断点与 common 统一 520px） */
+        @media (max-width: 520px) {
+            .board { transform: scale(0.88); transform-origin: top center; }
         }
     </style>
 </head>
@@ -105,7 +89,7 @@
 
         <section class="game-stats">
             <div class="stat"><div class="stat-label">得分</div><div class="stat-value stat-score" id="score">0</div></div>
-            <div class="stat"><div class="stat-label">最佳</div><div class="stat-value stat-best" id="best">0</div></div>
+            <div class="stat"><div class="stat-label">最高</div><div class="stat-value stat-best" id="best">0</div></div>
         </section>
 
         <section class="game-stage">
@@ -118,9 +102,9 @@
             <!-- 瓦片层（数字方块在此滑动） -->
             <div class="tile-layer" id="tileLayer"></div>
             <!-- 结束/胜利遮罩 -->
-            <div class="overlay" id="overlay" style="display: none;">
-                <div class="overlay-title" id="overlayTitle"></div>
-                <div class="overlay-sub" id="overlaySub"></div>
+            <div class="game-overlay" id="overlay" style="display: none;">
+                <div class="game-overlay-title fail" id="overlayTitle"></div>
+                <div class="game-overlay-sub" id="overlaySub"></div>
                 <button onclick="restart()">再来一局</button>
             </div>
         </div>
@@ -311,11 +295,11 @@
 
             if (!won && board.flat().includes(2048)) {
                 won = true;
-                showOverlay('你赢了!', '按方向键继续挑战');
+                showOverlay('你赢了!', '按方向键继续挑战', 'win');
                 beep(880, 0.18, 'square', 0.05);
             } else if (!hasMoves(board)) {
                 over = true;
-                showOverlay('游戏结束', '得分 ' + score);
+                showOverlay('游戏结束', '得分 ' + score, 'fail');
                 beep(120, 0.3, 'sawtooth', 0.05);
             }
         }
@@ -331,8 +315,9 @@
             return false;
         }
 
-        function showOverlay(title, sub) {
+        function showOverlay(title, sub, type) {
             overlayTitle.textContent = title;
+            overlayTitle.className = 'game-overlay-title ' + (type || 'fail');
             overlaySub.textContent = sub;
             overlay.style.display = 'flex';
         }

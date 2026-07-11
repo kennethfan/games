@@ -20,9 +20,7 @@
         }
 
         #gameCanvas {
-            border: 2px solid #2a3042;
-            border-radius: 10px;
-            background: #0a0a15;
+            background: var(--board-bg);
             display: block;
             max-width: 100%;
             height: auto;
@@ -30,53 +28,9 @@
         #nextCanvas {
             display: block;
             margin: 0 auto;
-            background: #0a0a15;
-            border: 1px solid #2a3042;
+            background: var(--board-bg);
+            border: 1px solid var(--card-border);
             border-radius: 8px;
-        }
-
-        .game-over-overlay {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(15, 17, 23, 0.88);
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            border-radius: 10px;
-            z-index: 10;
-        }
-        .game-over-text {
-            font-size: 36px;
-            color: #ff6b6b;
-            font-weight: bold;
-            margin-bottom: 20px;
-        }
-        .final-score {
-            font-size: 24px;
-            color: #ffd93d;
-            margin-bottom: 30px;
-        }
-        .pause-overlay {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(15, 17, 23, 0.8);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            border-radius: 10px;
-            z-index: 10;
-        }
-        .pause-text {
-            font-size: 32px;
-            color: #6c8cff;
-            font-weight: bold;
         }
 
         /* 移动端触摸控制（仅在触摸设备上显示） */
@@ -95,19 +49,14 @@
             padding: 14px 0;
             border-radius: 12px;
             font-size: 15px;
-            background: #161922;
-            color: #6c8cff;
+            background: var(--bg-soft);
+            color: var(--accent);
         }
         .tcbtn.wide { flex: 1; }
         .tcbtn:active { background: #16385f; transform: scale(0.97); }
 
         @media (hover: hover) and (pointer: fine) {
             .touch-controls { display: none; }
-        }
-
-        @media (max-width: 640px) {
-            .game-wrap { max-width: 94vw; }
-            #gameCanvas { width: 100%; height: auto; touch-action: none; }
         }
     </style>
 </head>
@@ -130,13 +79,13 @@
         <section class="game-stage">
             <div class="game-board">
                 <canvas id="gameCanvas" width="300" height="600"></canvas>
-                <div id="gameOverOverlay" class="game-over-overlay" style="display: none;">
-                    <div class="game-over-text">游戏结束!</div>
-                    <div class="final-score" id="finalScore">得分: 0</div>
+                <div id="gameOverOverlay" class="game-overlay" style="display: none;">
+                    <div class="game-overlay-title fail">游戏结束!</div>
+                    <div class="game-overlay-sub" id="finalScore">得分: 0</div>
                     <button onclick="restartGame()">重新开始</button>
                 </div>
-                <div id="pauseOverlay" class="pause-overlay" style="display: none;">
-                    <div class="pause-text">已暂停</div>
+                <div id="pauseOverlay" class="game-overlay" style="display: none;">
+                    <div class="game-overlay-title pause">已暂停</div>
                 </div>
 
                 <div class="touch-controls" id="touchControls">
