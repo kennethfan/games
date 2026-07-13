@@ -1,0 +1,30 @@
+<!-- 首页：游戏合集入口 -->
+<view class="home">
+  <view class="hero">
+    <view class="hero-title">椒哥休闲游戏</view>
+    <view class="hero-sub">原生微信小程序 · 蓝紫风格</view>
+  </view>
+
+  <view class="grid">
+    <view class="card active" bindtap="go2048">
+      <view class="card-emoji">🔢</view>
+      <view class="card-name">2048</view>
+      <view class="card-desc">滑动合并数字</view>
+    </view>
+    <view class="card active" bindtap="goSnake">
+      <view class="card-emoji">🐍</view>
+      <view class="card-name">贪吃蛇</view>
+      <view class="card-desc">控制小蛇吃豆</view>
+    </view>
+    <view class="card active" bindtap="goTetris">
+      <view class="card-emoji">🧱</view>
+      <view class="card-name">俄罗斯方块</view>
+      <view class="card-desc">下落消除方块</view>
+    </view>
+    <view class="card active" bindtap="goBreakout">
+      <view class="card-emoji">🎯</view>
+      <view class="card-name">打砖块</view>
+      <view class="card-desc">弹球击碎砖块</view>
+    </view>
+  </view>
+</view>

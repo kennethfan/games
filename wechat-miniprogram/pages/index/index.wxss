@@ -1,0 +1,30 @@
+.home { padding: 48rpx 28rpx; }
+.hero { text-align: center; margin-bottom: 48rpx; }
+.hero-title {
+  font-size: 64rpx;
+  font-weight: 800;
+  color: #6c8cff;
+  letter-spacing: 2rpx;
+}
+.hero-sub { font-size: 28rpx; color: #9aa3b8; margin-top: 12rpx; }
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 28rpx;
+}
+.card {
+  background: #1c2030;
+  border: 1rpx solid #2a3042;
+  border-radius: 28rpx;
+  padding: 40rpx 28rpx;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12rpx;
+}
+.card.active { border-color: #6c8cff; }
+.card.locked { opacity: 0.5; }
+.card-emoji { font-size: 72rpx; }
+.card-name { font-size: 36rpx; font-weight: 700; color: #e8ecf4; }
+.card-desc { font-size: 24rpx; color: #9aa3b8; }

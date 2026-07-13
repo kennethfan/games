@@ -1,0 +1,47 @@
+<!-- 2048 游戏页 -->
+<view class="game-wrap">
+  <view class="game-header">
+    <view class="back-link" bindtap="goBack">← 返回</view>
+    <view class="game-title">2048</view>
+    <view class="icon-btn" bindtap="onReset">↻</view>
+  </view>
+
+  <view class="game-stats">
+    <view class="stat">
+      <view class="stat-label">得分</view>
+      <view class="stat-value stat-score">{{score}}</view>
+    </view>
+    <view class="stat">
+      <view class="stat-label">最高</view>
+      <view class="stat-value stat-best">{{best}}</view>
+    </view>
+  </view>
+
+  <view class="game-stage">
+    <view class="board" bindtouchstart="onTouchStart" bindtouchend="onTouchEnd">
+      <!-- 底层 16 个背景格 -->
+      <view class="cell" wx:for="{{cells}}" wx:key="index"></view>
+
+      <!-- 瓦片层：数字方块在此滑动 -->
+      <view class="tile-layer">
+        <view class="tile" wx:for="{{tiles}}" wx:key="id"
+              style="transform: translate({{item.tx}}rpx, {{item.ty}}rpx);">
+          <view class="tile-inner {{item.anim}}"
+                style="background:{{item.color}};color:{{item.textColor}};font-size:{{item.fontSize}}rpx;">{{item.value}}</view>
+        </view>
+      </view>
+
+      <!-- 胜利 / 结束遮罩（遮罩在 board 内，滑动手势会冒泡到 board 继续游戏） -->
+      <view class="game-overlay" wx:if="{{overlay.show}}">
+        <view class="game-overlay-title {{overlay.type}}">{{overlay.title}}</view>
+        <view class="game-overlay-sub">{{overlay.sub}}</view>
+        <view class="overlay-btn" bindtap="onReset">再来一局</view>
+      </view>
+    </view>
+  </view>
+
+  <view class="game-toolbar">
+    <view class="hint">滑动屏幕合并相同数字，凑出 <text class="b">2048</text></view>
+    <view class="btn" bindtap="onReset">重新开始</view>
+  </view>
+</view>

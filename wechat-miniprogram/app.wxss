@@ -1,0 +1,138 @@
+/* 全局样式：被各游戏页共用，避免重复。
+ * 包含：页面底色光晕、以及游戏页统一外壳组件
+ *   （game-wrap / game-header / game-stats / game-stage / game-toolbar / 统一遮罩）
+ * 配色与 web 版 common.css 保持一致（蓝紫家族）。
+ * 各游戏页仅保留自身玩法相关样式（棋盘、瓦片、触摸控件等）。 */
+
+page {
+  background: #0f1117;
+  color: #e8ecf4;
+  font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif;
+  min-height: 100vh;
+}
+
+/* ============ 游戏页统一外壳 ============ */
+.game-wrap {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 24rpx 16rpx;
+  display: flex;
+  flex-direction: column;
+  gap: 24rpx;
+}
+
+/* 页眉：返回 / 标题 / 重置 */
+.game-header {
+  display: flex;
+  align-items: center;
+  gap: 16rpx;
+}
+.back-link {
+  color: #9aa3b8;
+  font-size: 28rpx;
+  padding: 12rpx 20rpx;
+  border-radius: 16rpx;
+  border: 1rpx solid #2a3042;
+  background: #161922;
+}
+.game-title {
+  flex: 1;
+  text-align: center;
+  font-size: 52rpx;
+  font-weight: 800;
+  letter-spacing: 2rpx;
+  color: #6c8cff;
+}
+.icon-btn {
+  background: #161922;
+  color: #e8ecf4;
+  border: 1rpx solid #2a3042;
+  padding: 12rpx 22rpx;
+  border-radius: 16rpx;
+  font-size: 30rpx;
+}
+
+/* 状态条 */
+.game-stats {
+  display: flex;
+  justify-content: center;
+  gap: 20rpx;
+}
+.stat {
+  background: #161922;
+  border: 1rpx solid #2a3042;
+  border-radius: 24rpx;
+  padding: 16rpx 28rpx;
+  min-width: 150rpx;
+  text-align: center;
+}
+.stat-label { font-size: 24rpx; color: #9aa3b8; margin-bottom: 4rpx; }
+.stat-value { font-size: 44rpx; font-weight: 700; color: #e8ecf4; }
+.stat-score { color: #6c8cff; }
+.stat-best  { color: #ffd93d; }
+
+/* 舞台（棋盘所在区域） */
+.game-stage {
+  position: relative;
+  display: flex;
+  justify-content: center;
+}
+
+/* 操作条 */
+.game-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20rpx;
+}
+.hint { font-size: 26rpx; color: #9aa3b8; line-height: 1.5; }
+.hint .b { color: #6c8cff; }
+
+/* 统一主按钮 */
+.btn {
+  background: linear-gradient(135deg, #6c8cff, #b56cff);
+  color: #fff;
+  padding: 20rpx 36rpx;
+  border-radius: 20rpx;
+  font-size: 30rpx;
+  font-weight: 700;
+}
+
+/* ============ 统一遮罩层（胜利 / 失败）============
+ * 标题颜色用修饰类区分语义：.fail=失败(红)  .win=胜利(黄) */
+.game-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(15, 17, 23, 0.88);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  border-radius: 20rpx;
+  z-index: 10;
+  text-align: center;
+  padding: 40rpx;
+}
+.game-overlay-title {
+  font-size: 72rpx;
+  font-weight: 800;
+  margin-bottom: 28rpx;
+}
+.game-overlay-title.fail { color: #ff6b6b; }
+.game-overlay-title.win  { color: #ffd93d; }
+.game-overlay-title.pause { color: #6c8cff; }
+.game-overlay-title.ready { color: #9aa3b8; }
+.game-overlay-sub {
+  font-size: 36rpx;
+  color: #ffd93d;
+  margin-bottom: 44rpx;
+}
+.game-overlay-sub.muted { color: #9aa3b8; }
+.overlay-btn {
+  background: linear-gradient(135deg, #6c8cff, #b56cff);
+  color: #fff;
+  padding: 20rpx 48rpx;
+  border-radius: 20rpx;
+  font-size: 30rpx;
+  font-weight: 700;
+}
