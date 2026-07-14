@@ -1,0 +1,53 @@
+<!-- 打砖块游戏页 -->
+<view class="game-wrap">
+  <view class="game-header">
+    <view class="back-link" bindtap="goBack">← 返回</view>
+    <view class="game-title">打砖块</view>
+    <view class="icon-btn" bindtap="onReset">↻</view>
+  </view>
+
+  <view class="game-stats">
+    <view class="stat">
+      <view class="stat-label">得分</view>
+      <view class="stat-value stat-score">{{score}}</view>
+    </view>
+    <view class="stat">
+      <view class="stat-label">关卡</view>
+      <view class="stat-value">{{level}}</view>
+    </view>
+    <view class="stat">
+      <view class="stat-label">生命</view>
+      <view class="stat-value stat-danger">{{livesText}}</view>
+    </view>
+  </view>
+
+  <view class="game-stage">
+    <view class="board">
+      <canvas type="2d" id="gameCanvas" class="game-canvas"
+              bindtouchstart="onTouchStart" bindtouchmove="onTouchMove" bindtap="onTap"></canvas>
+
+      <view class="game-overlay" wx:if="{{overlay.show}}">
+        <view class="game-overlay-title {{overlay.type}}">{{overlay.title}}</view>
+        <view class="game-overlay-sub {{overlay.type === 'fail' ? '' : 'muted'}}" wx:if="{{overlay.sub}}">{{overlay.sub}}</view>
+        <view class="overlay-btn" wx:if="{{overlay.btn}}" bindtap="onOverlayBtn">
+          {{overlay.btn === 'reset' ? '重新开始' : '继续'}}
+        </view>
+      </view>
+
+      <!-- 移动端触摸控制 -->
+      <view class="bc-controls" wx:if="{{showTouch}}">
+        <view class="bcbtn" bindtap="onMove" data-dir="-1">◀</view>
+        <view class="bcbtn wide" bindtap="onLaunch">{{state === 'ready' ? '发射' : (state === 'paused' ? '继续' : '暂停')}}</view>
+        <view class="bcbtn" bindtap="onMove" data-dir="1">▶</view>
+      </view>
+    </view>
+  </view>
+
+  <view class="game-toolbar">
+    <view class="hint">拖动挡板接球 · <text class="b">点击</text>发射 · <text class="b">P</text> 暂停</view>
+    <view class="toolbar-btns">
+      <view class="btn" bindtap="onReset">重新开始</view>
+      <button class="share-btn" open-type="share">分享战绩</button>
+    </view>
+  </view>
+</view>

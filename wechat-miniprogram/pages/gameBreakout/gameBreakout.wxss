@@ -1,0 +1,44 @@
+/* 打砖块玩法相关样式（棋盘 / 触摸控制），配色与全站统一 */
+
+.board {
+  position: relative;
+  background: #161922;
+  padding: 12rpx;
+  border-radius: 20rpx;
+  border: 4rpx solid #2a3042;
+  touch-action: none;
+}
+
+.game-canvas {
+  display: block;
+  width: 480rpx;
+  height: 520rpx;
+  background: #0a0a15;
+  border-radius: 12rpx;
+}
+
+/* 移动端触摸控制 */
+.bc-controls {
+  display: flex;
+  align-items: center;
+  gap: 16rpx;
+  margin: 24rpx auto 0;
+  width: 100%;
+  max-width: 480rpx;
+  touch-action: none;
+}
+.bcbtn {
+  flex: 0 0 96rpx;
+  padding: 24rpx 0;
+  border-radius: 20rpx;
+  text-align: center;
+  background: #161922;
+  color: #6c8cff;
+  font-size: 36rpx;
+  border: 1rpx solid #2a3042;
+}
+.bcbtn.wide {
+  flex: 1;
+  font-size: 30rpx;
+}
+.bcbtn:active { background: #1d3a5f; transform: scale(0.97); }

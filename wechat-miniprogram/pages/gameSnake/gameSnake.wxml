@@ -1,0 +1,51 @@
+<!-- 贪吃蛇游戏页 -->
+<view class="game-wrap">
+  <view class="game-header">
+    <view class="back-link" bindtap="goBack">← 返回</view>
+    <view class="game-title">贪吃蛇</view>
+    <view class="icon-btn" bindtap="onReset">↻</view>
+  </view>
+
+  <view class="game-stats">
+    <view class="stat">
+      <view class="stat-label">得分</view>
+      <view class="stat-value stat-score">{{score}}</view>
+    </view>
+    <view class="stat">
+      <view class="stat-label">最高</view>
+      <view class="stat-value stat-best">{{best}}</view>
+    </view>
+  </view>
+
+  <view class="game-stage">
+    <view class="board">
+      <canvas type="2d" id="gameCanvas" class="game-canvas"
+              bindtouchstart="onTouchStart" bindtouchend="onTouchEnd"></canvas>
+
+      <!-- 暂停 / 结束遮罩 -->
+      <view class="game-overlay" wx:if="{{overlay.show}}">
+        <view class="game-overlay-title {{overlay.type}}">{{overlay.title}}</view>
+        <view class="game-overlay-sub" wx:if="{{overlay.sub}}">{{overlay.sub}}</view>
+        <view class="overlay-btn" bindtap="onOverlayBtn">
+          {{overlay.type === 'fail' ? '再来一局' : '继续'}}
+        </view>
+      </view>
+
+      <!-- 移动端虚拟方向键 -->
+      <view class="dpad" wx:if="{{showDpad}}">
+        <view class="dbtn up"    bindtap="onDir" data-dir="up">▲</view>
+        <view class="dbtn left"  bindtap="onDir" data-dir="left">◀</view>
+        <view class="dbtn right" bindtap="onDir" data-dir="right">▶</view>
+        <view class="dbtn down"  bindtap="onDir" data-dir="down">▼</view>
+      </view>
+    </view>
+  </view>
+
+  <view class="game-toolbar">
+    <view class="hint">方向键或<text class="b">滑动</text>移动 · <text class="b">空格</text>暂停</view>
+    <view class="toolbar-btns">
+      <view class="btn" bindtap="onReset">重新开始</view>
+      <button class="share-btn" open-type="share">分享战绩</button>
+    </view>
+  </view>
+</view>

@@ -1,0 +1,18 @@
+{
+  "pages": [
+    "pages/index/index",
+    "pages/game2048/game2048",
+    "pages/gameSnake/gameSnake",
+    "pages/gameTetris/gameTetris",
+    "pages/gameBreakout/gameBreakout"
+  ],
+  "window": {
+    "navigationBarBackgroundColor": "#0f1117",
+    "navigationBarTextStyle": "white",
+    "navigationBarTitleText": "椒哥休闲游戏",
+    "backgroundColor": "#0f1117"
+  },
+  "style": "v2",
+  "sitemapLocation": "sitemap.json",
+  "__usePrivacyCheck__": true
+}
