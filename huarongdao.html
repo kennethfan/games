@@ -69,7 +69,28 @@
         .piece.cao .pname  { font-size: 34px; }
 
         /* 棋子配色（女神突出、关羽绿、四将蓝紫家族、兵灰蓝） */
-        .piece.cao   { background: linear-gradient(135deg, #ff7a7a, #ff5c5c); }
+        .piece.cao   {
+            background-image: url('assets/goddess.png');
+            background-size: cover;
+            background-position: center 22%;
+            background-repeat: no-repeat;
+        }
+        .piece.cao .pname {
+            display: none;
+        }
+        .piece.cao::after {
+            content: '女神';
+            position: absolute;
+            bottom: 4px;
+            left: 0; right: 0;
+            text-align: center;
+            font-size: 13px;
+            font-weight: 700;
+            color: rgba(255,255,255,0.9);
+            text-shadow: 0 1px 3px rgba(0,0,0,0.6);
+            pointer-events: none;
+            letter-spacing: 2px;
+        }
         .piece.guan  { background: linear-gradient(135deg, #3ed598, #28a06f); }
         .piece.p1    { background: linear-gradient(135deg, #6c8cff, #4a6cff); }
         .piece.p2    { background: linear-gradient(135deg, #7d7bff, #5a5aff); }
