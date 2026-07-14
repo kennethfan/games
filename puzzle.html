@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <meta name="description" content="女神拼图小游戏：滑动图块，把打乱的女神图复原，支持 3×3 / 4×4 / 5×5 难度，纯前端、打开即玩。" />
+    <link rel="icon" href="favicon.svg" type="image/svg+xml" />
+    <link rel="stylesheet" href="assets/common.css" />
+    <title>女神拼图</title>
+    <style>
+        /* 拼图棋盘：正方形，用图块百分比定位实现完全响应式切图 */
+        .board {
+            position: relative;
+            width: 440px;
+            max-width: 92vw;
+            aspect-ratio: 1 / 1;
+            background: var(--board-bg);
+            overflow: hidden;
+            touch-action: none;
+        }
+        .tile {
+            position: absolute;
+            /* 用整图作背景，通过 background-size 放大 n 倍 + 百分比定位切出对应块 */
+            background-image: url('assets/goddess.png');
+            background-repeat: no-repeat;
+            border: 1px solid rgba(15, 17, 23, 0.55);
+            box-sizing: border-box;
+            cursor: pointer;
+            transition: left 0.16s ease, top 0.16s ease;
+            display: flex;
+            align-items: flex-start;
+            justify-content: flex-start;
+            user-select: none;
+            -webkit-user-select: none;
+        }
+        .tile:active { filter: brightness(1.12); }
+        /* 图块序号提示（可切换） */
+        .tile .num {
+            font-size: 13px;
+            font-weight: 800;
+            color: #fff;
+            background: rgba(15, 17, 23, 0.62);
+            padding: 1px 6px;
+            border-radius: 0 0 8px 0;
+            pointer-events: none;
+            line-height: 1.4;
+        }
+        .board.hide-num .tile .num { display: none; }
+
+        /* 原图参考浮层 */
+        .board.show-ref .tile { opacity: 0; }
+        .ref-img {
+            position: absolute;
+            inset: 0;
+            background-image: url('assets/goddess.png');
+            background-size: cover;
+            background-position: center;
+            display: none;
+            z-index: 5;
+        }
+        .board.show-ref .ref-img { display: block; }
+
+        /* 难度选择条（复用华容道胶囊样式） */
+        .level-tabs {
+            display: flex;
+            gap: 8px;
+            justify-content: center;
+            flex-wrap: wrap;
+            padding: 2px 2px 4px;
+        }
+        .level-tab {
+            flex: 0 0 auto;
+            background: #232a44;
+            color: #c7cfe8;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 999px;
+            padding: 8px 18px;
+            font-size: 14px;
+            cursor: pointer;
+            white-space: nowrap;
+            transition: all 0.15s ease;
+        }
+        .level-tab.active {
+            background: linear-gradient(135deg, #6c8cff, #b56cff);
+            color: #fff;
+            border-color: transparent;
+            font-weight: 700;
+        }
+        .level-tab:active { filter: brightness(1.1); }
+
+        .toolbar-btns { display: flex; gap: 8px; flex-wrap: wrap; }
+    </style>
+</head>
+<body>
+    <div class="game-wrap">
+        <header class="game-header">
+            <a class="back-link" href="index.html">← 返回</a>
+            <h1 class="game-title">女神拼图</h1>
+            <button id="soundBtn" class="icon-btn" onclick="toggleSound()">🔊</button>
+        </header>
+
+        <section class="game-stats">
+            <div class="stat"><div class="stat-label">步数</div><div class="stat-value stat-score" id="moves">0</div></div>
+            <div class="stat"><div class="stat-label">用时</div><div class="stat-value" id="time">00:00</div></div>
+            <div class="stat"><div class="stat-label">最佳步数</div><div class="stat-value stat-best" id="bestMoves">—</div></div>
+            <div class="stat"><div class="stat-label">最佳用时</div><div class="stat-value stat-best" id="bestTime">—</div></div>
+        </section>
+
+        <div class="level-tabs" id="levelTabs"></div>
+
+        <section class="game-stage">
+            <div class="board hide-num" id="board">
+                <div class="ref-img"></div>
+                <!-- 胜利遮罩 -->
+                <div class="game-overlay" id="overlay" style="display: none;">
+                    <div class="game-overlay-title win" id="overlayTitle"></div>
+                    <div class="game-overlay-sub" id="overlaySub"></div>
+                    <button onclick="restart()">再来一局</button>
+                </div>
+            </div>
+        </section>
+
+        <footer class="game-toolbar">
+            <div class="hint">点击<b>空格相邻</b>的图块滑入空位，把打乱的女神图复原</div>
+            <div class="toolbar-btns">
+                <button class="icon-btn" onclick="toggleNum()" id="numBtn">🔢 序号</button>
+                <button class="icon-btn" onmousedown="showRef(true)" onmouseup="showRef(false)" onmouseleave="showRef(false)" ontouchstart="showRef(true)" ontouchend="showRef(false)">👁 原图</button>
+                <button onclick="restart()">重新打乱</button>
+            </div>
+        </footer>
+    </div>
+
+    <script src="assets/common.js"></script>
+    <script>
+        // ===== 难度配置 =====
+        const LEVELS = {
+            easy:   { n: 3, name: '轻松 3×3' },
+            normal: { n: 4, name: '经典 4×4' },
+            hard:   { n: 5, name: '挑战 5×5' }
+        };
+        let currentLevel = 'normal';
+        let N = 4;                 // 每行块数
+        let EMPTY = N * N - 1;     // 空格的 tileId（约定为最后一块）
+        let order = [];            // order[pos] = 当前该格上的 tileId
+        let tileEls = [];          // tileEls[tileId] = DOM 元素（EMPTY 无元素）
+        let moves = 0;
+        let won = false;
+        let started = false;
+        let seconds = 0;
+        let timer = null;
+
+        const boardEl   = document.getElementById('board');
+        const movesEl   = document.getElementById('moves');
+        const timeEl    = document.getElementById('time');
+        const bestMovesEl = document.getElementById('bestMoves');
+        const bestTimeEl  = document.getElementById('bestTime');
+        const overlay      = document.getElementById('overlay');
+        const overlayTitle = document.getElementById('overlayTitle');
+        const overlaySub   = document.getElementById('overlaySub');
+
+        const fmt = s => String(Math.floor(s / 60)).padStart(2, '0') + ':' + String(s % 60).padStart(2, '0');
+        const keyMoves = () => 'bestPuzzleMoves_' + currentLevel;
+        const keyTime  = () => 'bestPuzzleTime_' + currentLevel;
+
+        // ===== 关卡选择条 =====
+        function renderLevelTabs() {
+            const box = document.getElementById('levelTabs');
+            box.innerHTML = '';
+            Object.keys(LEVELS).forEach(key => {
+                const btn = document.createElement('button');
+                btn.className = 'level-tab' + (key === currentLevel ? ' active' : '');
+                btn.textContent = LEVELS[key].name;
+                btn.onclick = () => { if (key !== currentLevel) { currentLevel = key; init(); } };
+                box.appendChild(btn);
+            });
+        }
+
+        // 某 tileId 对应原图中的行列（目标位置）
+        const tileRow = t => Math.floor(t / N);
+        const tileCol = t => t % N;
+
+        // 把 tileId 为 t 的元素放到棋盘格 pos（当前位置）
+        function placeTile(t, pos) {
+            const el = tileEls[t];
+            if (!el) return;
+            const row = Math.floor(pos / N), col = pos % N;
+            el.style.left = (col * 100 / N) + '%';
+            el.style.top  = (row * 100 / N) + '%';
+        }
+
+        // ===== 初始化 / 打乱 =====
+        function init() {
+            N = LEVELS[currentLevel].n;
+            EMPTY = N * N - 1;
+            won = false;
+            started = false;
+            moves = 0;
+            seconds = 0;
+            clearInterval(timer);
+            timer = null;
+            movesEl.textContent = '0';
+            timeEl.textContent = '00:00';
+            overlay.style.display = 'none';
+
+            // 清除旧 tiles（保留 ref-img 与 overlay）
+            boardEl.querySelectorAll('.tile').forEach(el => el.remove());
+            tileEls = [];
+
+            // 创建 N*N-1 个图块（EMPTY 不建）
+            for (let t = 0; t < N * N; t++) {
+                if (t === EMPTY) { tileEls[t] = null; continue; }
+                const el = document.createElement('div');
+                el.className = 'tile';
+                el.style.width  = (100 / N) + '%';
+                el.style.height = (100 / N) + '%';
+                // 切图：整图放大 N 倍，按目标行列百分比定位
+                el.style.backgroundSize = (N * 100) + '% ' + (N * 100) + '%';
+                el.style.backgroundPositionX = (N > 1 ? tileCol(t) * 100 / (N - 1) : 0) + '%';
+                el.style.backgroundPositionY = (N > 1 ? tileRow(t) * 100 / (N - 1) : 0) + '%';
+                const num = document.createElement('span');
+                num.className = 'num';
+                num.textContent = (t + 1);
+                el.appendChild(num);
+                el.addEventListener('click', () => onTileClick(t));
+                boardEl.appendChild(el);
+                tileEls[t] = el;
+            }
+
+            shuffle();
+            renderAll();
+            loadBest();
+        }
+
+        // 从解状态随机滑动空格打乱（天然保证可解）
+        function shuffle() {
+            order = [];
+            for (let i = 0; i < N * N; i++) order[i] = i; // 解状态：order[pos]=pos
+            let emptyPos = EMPTY;                          // 空格初始在最后一格
+            let last = -1;
+            const times = N * N * 60;
+            for (let k = 0; k < times; k++) {
+                const nb = neighbors(emptyPos).filter(p => p !== last);
+                const pick = nb[Math.floor(Math.random() * nb.length)];
+                order[emptyPos] = order[pick];
+                order[pick] = EMPTY;
+                last = emptyPos;
+                emptyPos = pick;
+            }
+            // 极小概率打乱后仍是解状态，重来
+            if (isSolved()) shuffle();
+        }
+
+        // 某格的上下左右相邻格
+        function neighbors(pos) {
+            const r = Math.floor(pos / N), c = pos % N, res = [];
+            if (r > 0) res.push(pos - N);
+            if (r < N - 1) res.push(pos + N);
+            if (c > 0) res.push(pos - 1);
+            if (c < N - 1) res.push(pos + 1);
+            return res;
+        }
+
+        function emptyPosNow() { return order.indexOf(EMPTY); }
+
+        function renderAll() {
+            for (let pos = 0; pos < N * N; pos++) {
+                const t = order[pos];
+                if (t !== EMPTY) placeTile(t, pos);
+            }
+        }
+
+        // ===== 交互 =====
+        function onTileClick(t) {
+            if (won) return;
+            const p = order.indexOf(t);
+            const e = emptyPosNow();
+            if (!neighbors(p).includes(e)) return; // 不与空格相邻，忽略
+            // 交换：图块滑入空位
+            order[e] = t;
+            order[p] = EMPTY;
+            placeTile(t, e);
+            moves++;
+            movesEl.textContent = moves;
+            if (!started) startTimer();
+            beep(520, 0.05, 'sine', 0.05);
+            if (isSolved()) onWin();
+        }
+
+        // 键盘方向键：把对应方向的相邻块滑入空位
+        document.addEventListener('keydown', ev => {
+            if (won) return;
+            const e = emptyPosNow();
+            const r = Math.floor(e / N), c = e % N;
+            let from = -1;
+            if (ev.key === 'ArrowUp'    && r < N - 1) from = e + N; // 下方块上移
+            if (ev.key === 'ArrowDown'  && r > 0)     from = e - N; // 上方块下移
+            if (ev.key === 'ArrowLeft'  && c < N - 1) from = e + 1; // 右方块左移
+            if (ev.key === 'ArrowRight' && c > 0)     from = e - 1; // 左方块右移
+            if (from >= 0) { ev.preventDefault(); onTileClick(order[from]); }
+        });
+
+        function isSolved() {
+            for (let i = 0; i < N * N; i++) if (order[i] !== i) return false;
+            return true;
+        }
+
+        function startTimer() {
+            started = true;
+            timer = setInterval(() => {
+                seconds++;
+                timeEl.textContent = fmt(seconds);
+            }, 1000);
+        }
+
+        // ===== 胜利 =====
+        function onWin() {
+            won = true;
+            clearInterval(timer);
+            beep(880, 0.16, 'sine', 0.06);
+            setTimeout(() => beep(1180, 0.22, 'sine', 0.06), 150);
+
+            const bm = parseInt(localStorage.getItem(keyMoves()) || '0', 10) || 0;
+            const bt = parseInt(localStorage.getItem(keyTime())  || '0', 10) || 0;
+            let recordMsg = [];
+            if (bm === 0 || moves < bm) { localStorage.setItem(keyMoves(), moves); recordMsg.push('步数'); }
+            if (bt === 0 || seconds < bt) { localStorage.setItem(keyTime(), seconds); recordMsg.push('用时'); }
+            loadBest();
+
+            overlayTitle.textContent = '🎉 拼好啦！';
+            overlaySub.textContent = '用 ' + moves + ' 步 · ' + fmt(seconds) +
+                (recordMsg.length ? '　🏆 刷新' + recordMsg.join('/') + '纪录' : '');
+            overlay.style.display = 'flex';
+        }
+
+        function loadBest() {
+            const bm = parseInt(localStorage.getItem(keyMoves()) || '0', 10) || 0;
+            const bt = parseInt(localStorage.getItem(keyTime())  || '0', 10) || 0;
+            bestMovesEl.textContent = bm === 0 ? '—' : bm;
+            bestTimeEl.textContent  = bt === 0 ? '—' : fmt(bt);
+        }
+
+        // ===== 工具按钮 =====
+        function restart() { init(); }
+        function toggleNum() {
+            boardEl.classList.toggle('hide-num');
+            document.getElementById('numBtn').textContent =
+                boardEl.classList.contains('hide-num') ? '🔢 序号' : '🙈 序号';
+        }
+        function showRef(on) {
+            boardEl.classList.toggle('show-ref', on);
+        }
+
+        // 启动
+        renderLevelTabs();
+        init();
+    </script>
+</body>
+</html>

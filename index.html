@@ -145,6 +145,18 @@
     padding: 30px 0 50px; text-align: center; color: var(--text-dim); font-size: 13px;
   }
   footer a { color: var(--accent); text-decoration: none; }
+  .github-link {
+    display: inline-block;
+    padding: 10px 20px;
+    border: 1px solid var(--accent);
+    border-radius: 999px;
+    color: var(--accent);
+    text-decoration: none;
+    font-weight: 600;
+    font-size: 14px;
+    transition: background 0.18s ease, color 0.18s ease;
+  }
+  .github-link:hover { background: var(--accent); color: #fff; }
 
   @media (max-width: 560px) {
     .nav-links { display: none; }
@@ -167,16 +179,34 @@
     <section class="hero">
       <div class="eyebrow">CLASSIC ARCADE COLLECTION</div>
       <h1>经典 <span class="grad">街机小游戏</span>合集</h1>
-      <p>无需下载、打开即玩。精选 5 款经久不衰的休闲游戏，键盘 / 鼠标 / 触摸轻松上手。</p>
+      <p>无需下载、打开即玩。精选 6 款经久不衰的休闲游戏，键盘 / 鼠标 / 触摸轻松上手。</p>
     </section>
 
     <section id="games">
       <div class="section-title">
         <h2>全部游戏</h2>
-        <span>共 5 款 · 纯前端实现</span>
+        <span>共 6 款 · 纯前端实现</span>
       </div>
 
       <div class="grid">
+        <!-- 女神拼图（第一个） -->
+        <article class="card" style="--c1:#b56cff;--c2:#7a4cff;--tint:rgba(181,108,255,0.18);--glow:rgba(181,108,255,0.22);">
+          <div class="icon">🧩</div>
+          <h3>女神拼图</h3>
+          <p class="desc">滑动图块，把打乱的女神图复原，考验观察力与耐心。</p>
+          <ul><li>3/4/5 难度</li><li>计步计时</li><li>看原图</li></ul>
+          <a class="play-btn" href="puzzle.html">▶ 开始游戏</a>
+        </article>
+
+        <!-- 拯救女神（第二个） -->
+        <article class="card" style="--c1:#ffb04a;--c2:#ff6b6b;--tint:rgba(255,107,107,0.18);--glow:rgba(255,107,107,0.22);">
+          <div class="icon">🎲</div>
+          <h3>拯救女神</h3>
+          <p class="desc">移动木块，护送女神从底部出口逃脱，经典益智解谜。</p>
+          <ul><li>横刀立马</li><li>最少步数</li><li>点击移动</li></ul>
+          <a class="play-btn" href="huarongdao.html">▶ 开始游戏</a>
+        </article>
+
         <!-- 俄罗斯方块 -->
         <article class="card" style="--c1:#6c8cff;--c2:#4a6cff;--tint:rgba(108,140,255,0.18);--glow:rgba(108,140,255,0.22);">
           <div class="icon">🧱</div>
@@ -184,15 +214,6 @@
           <p class="desc">下落方块、旋转消除，挑战手速与空间规划，越堆越快。</p>
           <ul><li>7 种方块</li><li>等级加速</li><li>下个预览</li></ul>
           <a class="play-btn" href="tetris.html">▶ 开始游戏</a>
-        </article>
-
-        <!-- 贪吃蛇 -->
-        <article class="card" style="--c1:#3ed598;--c2:#28c76f;--tint:rgba(62,213,152,0.18);--glow:rgba(62,213,152,0.22);">
-          <div class="icon">🐍</div>
-          <h3>贪吃蛇</h3>
-          <p class="desc">控制小蛇吃豆变长，小心别撞墙也别咬到自己。</p>
-          <ul><li>方向键</li><li>最高分</li><li>速度递进</li></ul>
-          <a class="play-btn" href="snake.html">▶ 开始游戏</a>
         </article>
 
         <!-- 2048 -->
@@ -204,22 +225,22 @@
           <a class="play-btn" href="2048.html">▶ 开始游戏</a>
         </article>
 
-        <!-- 打砖块 -->
+        <!-- 贪吃蛇 -->
+        <article class="card" style="--c1:#3ed598;--c2:#28c76f;--tint:rgba(62,213,152,0.18);--glow:rgba(62,213,152,0.22);">
+          <div class="icon">🐍</div>
+          <h3>贪吃蛇</h3>
+          <p class="desc">控制小蛇吃豆变长，小心别撞墙也别咬到自己。</p>
+          <ul><li>方向键</li><li>最高分</li><li>速度递进</li></ul>
+          <a class="play-btn" href="snake.html">▶ 开始游戏</a>
+        </article>
+
+        <!-- 打砖块（最后） -->
         <article class="card" style="--c1:#ff7aa8;--c2:#ff5c8a;--tint:rgba(255,122,168,0.18);--glow:rgba(255,122,168,0.22);">
           <div class="icon">🎯</div>
           <h3>打砖块</h3>
           <p class="desc">移动挡板反弹小球，击碎所有砖块闯关，物理手感十足。</p>
           <ul><li>关卡递进</li><li>反弹物理</li><li>3 条命</li></ul>
           <a class="play-btn" href="breakout.html">▶ 开始游戏</a>
-        </article>
-
-        <!-- 拯救女神 -->
-        <article class="card" style="--c1:#ffb04a;--c2:#ff6b6b;--tint:rgba(255,107,107,0.18);--glow:rgba(255,107,107,0.22);">
-          <div class="icon">🎲</div>
-          <h3>拯救女神</h3>
-          <p class="desc">移动木块，护送女神从底部出口逃脱，经典益智解谜。</p>
-          <ul><li>横刀立马</li><li>最少步数</li><li>点击移动</li></ul>
-          <a class="play-btn" href="huarongdao.html">▶ 开始游戏</a>
         </article>
       </div>
     </section>
@@ -230,6 +251,9 @@
         本站是一组纯前端（HTML + CSS + JavaScript / Canvas）实现的休闲小游戏合集，
         每个游戏都是独立的单文件页面，无需任何服务器或安装即可在浏览器中直接游玩。
         支持键盘、鼠标与移动端触摸操作，桌面与手机均可畅玩。
+      </p>
+      <p style="margin-top:18px;">
+        <a class="github-link" href="https://github.com/kennethfan/games" target="_blank" rel="noopener">⭐ 在 GitHub 上查看源码 / Star</a>
       </p>
     </section>
   </main>

@@ -1,5 +1,11 @@
 # 小游戏官网 · 经典街机合集
 
+[![GitHub stars](https://img.shields.io/github/stars/kennethfan/games?style=social)](https://github.com/kennethfan/games)
+[![GitHub forks](https://img.shields.io/github/forks/kennethfan/games?style=social)](https://github.com/kennethfan/games)
+[![GitHub license](https://img.shields.io/github/license/kennethfan/games)](https://github.com/kennethfan/games)
+
+> 🌟 源码仓库：[github.com/kennethfan/games](https://github.com/kennethfan/games) · 欢迎 Star 与 Fork
+
 一组**纯前端**（HTML + CSS + JavaScript / Canvas）实现的休闲小游戏合集。
 每个游戏都是独立的单文件页面，**无需任何服务器或安装**，双击即可在浏览器中游玩，
 也支持部署到任意静态托管（GitHub Pages / Vercel / Nginx 等）。
@@ -15,6 +21,7 @@
 | 🔢 2048 | [2048.html](./2048.html) | 滑动合并、瓦片动画、最佳分持久化 |
 | 🎯 打砖块 | [breakout.html](./breakout.html) | 关卡递进、反弹物理、3 条命 |
 | 🎲 拯救女神 | [huarongdao.html](./huarongdao.html) | 移动木块、护送女神脱身、5 大经典布局、最少步数参考 |
+| 🧩 女神拼图 | [puzzle.html](./puzzle.html) | 滑块拼图、3/4/5 难度、计步计时、看原图、最佳纪录 |
 
 ## 操作说明
 
@@ -41,6 +48,13 @@
 - 关卡：横刀立马 / 指挥若定 / 兵分三路 / 齐头并进 / 兵临曹营，可在顶部胶囊切换
 - 统计：步数、各关最佳步数（`localStorage`）、最少步数参考
 - 胜利：女神占据底部出口四格即通关，达成最少步数会提示「完美」
+
+### 🧩 女神拼图
+- 点击：点击 **空格相邻** 的图块，将其滑入空位；也支持方向键操作
+- 难度：轻松 3×3 / 经典 4×4 / 挑战 5×5，可在顶部胶囊切换
+- 辅助：「序号」显示每块目标位置、「原图」按住查看完整参考图
+- 统计：步数、用时，以及各难度的最佳步数 / 最佳用时（`localStorage`）
+- 胜利：所有图块归位即复原成功，会提示是否刷新纪录
 
 ## 技术栈
 
@@ -72,6 +86,8 @@ npx serve .
 ├── 2048.html         # 2048（单文件）
 ├── breakout.html     # 打砖块（单文件）
 ├── huarongdao.html   # 拯救女神（单文件，传统华容道玩法）
+├── puzzle.html       # 女神拼图（单文件，滑块拼图玩法）
+├── assets/           # 公共样式 / 脚本 / 图片（common.css、common.js、goddess.png）
 └── LICENSE           # Apache License 2.0
 ```
 
