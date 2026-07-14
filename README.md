@@ -1,5 +1,11 @@
 # 小游戏官网 · 经典街机合集
 
+[![GitHub stars](https://img.shields.io/github/stars/kennethfan/games?style=social)](https://github.com/kennethfan/games)
+[![GitHub forks](https://img.shields.io/github/forks/kennethfan/games?style=social)](https://github.com/kennethfan/games)
+[![GitHub license](https://img.shields.io/github/license/kennethfan/games)](https://github.com/kennethfan/games)
+
+> 🌟 源码仓库：[github.com/kennethfan/games](https://github.com/kennethfan/games) · 欢迎 Star 与 Fork
+
 一组**纯前端**（HTML + CSS + JavaScript / Canvas）实现的休闲小游戏合集。
 每个游戏都是独立的单文件页面，**无需任何服务器或安装**，双击即可在浏览器中游玩，
 也支持部署到任意静态托管（GitHub Pages / Vercel / Nginx 等）。
