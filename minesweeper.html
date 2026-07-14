@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta name="description" content="扫雷小游戏：翻开格子避开地雷，经典逻辑推理，支持初级 / 中级 / 高级难度，纯前端、打开即玩。" />
+<title>扫雷</title>
+<link rel="stylesheet" href="assets/common.css" />
+<style>
+  .board {
+    display: grid;
+    gap: 2px;
+    background: var(--board-bg);
+    padding: 8px;
+    border-radius: 10px;
+    max-width: 100%;
+    overflow: auto;
+  }
+  .cell {
+    width: var(--cell, 30px);
+    height: var(--cell, 30px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: calc(var(--cell, 30px) * 0.55);
+    font-weight: 700;
+    background: #2a3042;
+    color: var(--text);
+    border-radius: 4px;
+    cursor: pointer;
+    user-select: none;
+    transition: background .08s;
+  }
+  .cell:hover:not(.revealed) { background: #333a4f; }
+  .cell.revealed { background: #161922; cursor: default; }
+  .cell.mine { background: var(--danger); }
+  .cell.flag { color: #ffd93d; }
+  .cell.n1 { color: #6c8cff; } .cell.n2 { color: #3ed598; }
+  .cell.n3 { color: #ff6b6b; } .cell.n4 { color: #b56cff; }
+  .cell.n5 { color: #ffb04a; } .cell.n6 { color: #3ed598; }
+  .cell.n7 { color: #9aa3b8; } .cell.n8 { color: #ff8cae; }
+
+  .level-tab {
+    background: var(--bg-soft);
+    color: var(--text-dim);
+    border: 1px solid var(--card-border);
+    padding: 7px 12px;
+    border-radius: 999px;
+    font-size: 13px;
+    cursor: pointer;
+    transition: all .18s;
+    font-family: inherit;
+  }
+  .level-tab.active { color: #fff; border-color: var(--accent); background: rgba(108,140,255,0.18); }
+  .level-tab:hover { color: var(--text); }
+  .toolbar-btns { display: flex; gap: 8px; flex-wrap: wrap; }
+  .ghost-btn {
+    background: var(--bg-soft);
+    color: var(--text);
+    border: 1px solid var(--card-border);
+    padding: 9px 14px;
+    border-radius: 10px;
+    cursor: pointer;
+    font-size: 14px;
+    font-family: inherit;
+    transition: all .18s;
+  }
+  .ghost-btn:hover { border-color: var(--accent); filter: brightness(1.15); }
+  .ghost-btn.active { border-color: var(--danger); color: var(--danger); }
+</style>
+</head>
+<body>
+<div class="game-wrap">
+  <div class="game-header">
+    <a class="back-link" href="index.html">← 首页</a>
+    <h1 class="game-title">扫雷</h1>
+    <button class="icon-btn" id="soundBtn" onclick="toggleSound()">🔊 音效</button>
+  </div>
+
+  <div class="game-stats">
+    <div class="stat"><div class="stat-label">剩余雷</div><div class="stat-value stat-danger" id="mineLeft">0</div></div>
+    <div class="stat"><div class="stat-label">时间</div><div class="stat-value" id="time">0</div></div>
+    <div class="stat"><div class="stat-label">最佳</div><div class="stat-value stat-best" id="bestTime">—</div></div>
+  </div>
+
+  <div class="game-stage">
+    <div class="board" id="board"></div>
+    <div class="game-overlay" id="overlay" style="display:none;">
+      <div class="game-overlay-title" id="overlayTitle"></div>
+      <div class="game-overlay-sub" id="overlaySub"></div>
+      <button onclick="init()">再来一局</button>
+    </div>
+  </div>
+
+  <div class="game-toolbar">
+    <div class="toolbar-btns" id="levelTabs"></div>
+    <div class="toolbar-btns">
+      <button class="ghost-btn" id="flagBtn" onclick="toggleFlag()">🚩 标记</button>
+      <button class="ghost-btn" onclick="init()">🔄 重开</button>
+    </div>
+    <p class="hint">左键翻开 · 右键标记 · 首次点击安全 · 开启「标记」模式移动端也能标雷</p>
+  </div>
+</div>
+
+<script src="assets/common.js"></script>
+<script>
+  const LEVELS = {
+    easy:   { rows: 9,  cols: 9,  mines: 10, name: '初级 9×9' },
+    medium: { rows: 16, cols: 16, mines: 40, name: '中级 16×16' },
+    hard:   { rows: 16, cols: 30, mines: 99, name: '高级 16×30' }
+  };
+  let cur = 'easy';
+  let grid = [];
+  let cellEls = [];
+  let revealedCount = 0, flagCount = 0;
+  let gameOver = false, started = false, seconds = 0, timer = null, flagMode = false;
+
+  const boardEl   = document.getElementById('board');
+  const overlay   = document.getElementById('overlay');
+  const ovTitle   = document.getElementById('overlayTitle');
+  const ovSub     = document.getElementById('overlaySub');
+  const mineLeftEl= document.getElementById('mineLeft');
+  const timeEl    = document.getElementById('time');
+
+  function bestKey() { return 'bestMine_' + cur; }
+  function loadBest() {
+    const v = localStorage.getItem(bestKey());
+    document.getElementById('bestTime').textContent = v ? v + 's' : '—';
+  }
+  function computeCell() {
+    const maxW = Math.min(560, window.innerWidth - 36);
+    const size = Math.max(16, Math.floor((maxW - 16) / LEVELS[cur].cols));
+    document.documentElement.style.setProperty('--cell', size + 'px');
+  }
+  function renderLevelTabs() {
+    const box = document.getElementById('levelTabs');
+    box.innerHTML = '';
+    Object.keys(LEVELS).forEach(k => {
+      const b = document.createElement('button');
+      b.className = 'level-tab' + (k === cur ? ' active' : '');
+      b.textContent = LEVELS[k].name;
+      b.onclick = () => { if (k !== cur) { cur = k; init(); } };
+      box.appendChild(b);
+    });
+  }
+  function inBounds(r, c) { return r >= 0 && r < LEVELS[cur].rows && c >= 0 && c < LEVELS[cur].cols; }
+  function neighbors(r, c) {
+    const out = [];
+    for (let dr = -1; dr <= 1; dr++)
+      for (let dc = -1; dc <= 1; dc++) {
+        if (!dr && !dc) continue;
+        if (inBounds(r + dr, c + dc)) out.push([r + dr, c + dc]);
+      }
+    return out;
+  }
+  function placeMines(safeR, safeC) {
+    const L = LEVELS[cur];
+    const safe = new Set();
+    for (let dr = -1; dr <= 1; dr++)
+      for (let dc = -1; dc <= 1; dc++)
+        safe.add((safeR + dr) + ',' + (safeC + dc));
+    let placed = 0;
+    while (placed < L.mines) {
+      const r = Math.floor(Math.random() * L.rows);
+      const c = Math.floor(Math.random() * L.cols);
+      if (grid[r][c].mine || safe.has(r + ',' + c)) continue;
+      grid[r][c].mine = true; placed++;
+    }
+    for (let r = 0; r < L.rows; r++)
+      for (let c = 0; c < L.cols; c++) {
+        if (grid[r][c].mine) continue;
+        grid[r][c].adj = neighbors(r, c).filter(([nr, nc]) => grid[nr][nc].mine).length;
+      }
+  }
+  function buildGrid() {
+    const L = LEVELS[cur];
+    grid = []; cellEls = [];
+    boardEl.style.gridTemplateColumns = 'repeat(' + L.cols + ', var(--cell, 30px))';
+    boardEl.innerHTML = '';
+    for (let r = 0; r < L.rows; r++) {
+      grid[r] = []; cellEls[r] = [];
+      for (let c = 0; c < L.cols; c++) {
+        grid[r][c] = { mine: false, revealed: false, flagged: false, adj: 0 };
+        const el = document.createElement('div');
+        el.className = 'cell';
+        el.addEventListener('click', () => onLeft(r, c));
+        el.addEventListener('contextmenu', e => { e.preventDefault(); onRight(r, c); });
+        boardEl.appendChild(el);
+        cellEls[r][c] = el;
+      }
+    }
+  }
+  function paint(r, c) {
+    const cell = grid[r][c], el = cellEls[r][c];
+    el.className = 'cell';
+    el.textContent = '';
+    if (cell.flagged && !cell.revealed) { el.classList.add('flag'); el.textContent = '🚩'; }
+    else if (cell.revealed) {
+      el.classList.add('revealed');
+      if (cell.mine) { el.classList.add('mine'); el.textContent = '💣'; }
+      else if (cell.adj > 0) { el.classList.add('n' + cell.adj); el.textContent = cell.adj; }
+    }
+  }
+  function updateMineLeft() { mineLeftEl.textContent = LEVELS[cur].mines - flagCount; }
+  function startTimer() {
+    timer = setInterval(() => { seconds++; timeEl.textContent = seconds; }, 1000);
+  }
+  function onLeft(r, c) {
+    if (gameOver) return;
+    const cell = grid[r][c];
+    if (cell.flagged) return;
+    if (flagMode) { onRight(r, c); return; }
+    if (!started) { started = true; placeMines(r, c); startTimer(); }
+    if (cell.revealed) return;
+    if (cell.mine) { lose(r, c); return; }
+    flood(r, c);
+    if (checkWin()) win();
+  }
+  function onRight(r, c) {
+    if (gameOver) return;
+    const cell = grid[r][c];
+    if (cell.revealed) return;
+    cell.flagged = !cell.flagged;
+    flagCount += cell.flagged ? 1 : -1;
+    updateMineLeft();
+    paint(r, c);
+    beep(cell.flagged ? 660 : 440, 0.05);
+  }
+  function flood(r, c) {
+    const stack = [[r, c]];
+    while (stack.length) {
+      const [cr, cc] = stack.pop();
+      const cell = grid[cr][cc];
+      if (cell.revealed || cell.flagged || cell.mine) continue;
+      cell.revealed = true; revealedCount++;
+      paint(cr, cc);
+      if (cell.adj === 0) neighbors(cr, cc).forEach(([nr, nc]) => {
+        if (!grid[nr][nc].mine && !grid[nr][nc].revealed) stack.push([nr, nc]);
+      });
+    }
+  }
+  function checkWin() {
+    return revealedCount === LEVELS[cur].rows * LEVELS[cur].cols - LEVELS[cur].mines;
+  }
+  function lose(r, c) {
+    gameOver = true; clearInterval(timer);
+    const L = LEVELS[cur];
+    for (let i = 0; i < L.rows; i++)
+      for (let j = 0; j < L.cols; j++) {
+        if (grid[i][j].mine) { grid[i][j].revealed = true; paint(i, j); }
+      }
+    cellEls[r][c].classList.add('mine');
+    beep(160, 0.25, 'sawtooth');
+    ovTitle.className = 'game-overlay-title fail';
+    ovTitle.textContent = '💥 踩雷了';
+    ovSub.textContent = '用时 ' + seconds + ' 秒';
+    overlay.style.display = 'flex';
+  }
+  function win() {
+    gameOver = true; clearInterval(timer);
+    beep(880, 0.18, 'triangle');
+    const best = localStorage.getItem(bestKey());
+    let msg = '用时 ' + seconds + ' 秒';
+    if (!best || seconds < +best) {
+      localStorage.setItem(bestKey(), seconds);
+      msg += '　🏆 新纪录！';
+    }
+    ovTitle.className = 'game-overlay-title win';
+    ovTitle.textContent = '🎉 通关';
+    ovSub.textContent = msg;
+    overlay.style.display = 'flex';
+    loadBest();
+  }
+  function toggleFlag() {
+    flagMode = !flagMode;
+    const b = document.getElementById('flagBtn');
+    b.classList.toggle('active', flagMode);
+    b.textContent = flagMode ? '🚩 标记中' : '🚩 标记';
+  }
+  function init() {
+    clearInterval(timer);
+    computeCell();
+    buildGrid();
+    revealedCount = 0; flagCount = 0; gameOver = false; started = false; seconds = 0;
+    timeEl.textContent = '0';
+    updateMineLeft();
+    renderLevelTabs();
+    loadBest();
+    overlay.style.display = 'none';
+  }
+  window.addEventListener('resize', () => { if (!started) computeCell(); });
+  init();
+</script>
+</body>
+</html>
