@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta name="description" content="推箱子小游戏：把箱子推到目标点，经典解谜，内置 8 关递进、撤销与每关最佳步数，纯前端、打开即玩。" />
+<title>推箱子</title>
+<link rel="stylesheet" href="assets/common.css" />
+<style>
+  .board {
+    display: grid;
+    gap: 3px;
+    background: var(--board-bg);
+    padding: 10px;
+    border-radius: 10px;
+    max-width: 100%;
+    overflow: auto;
+  }
+  .cell {
+    width: var(--cell, 34px);
+    height: var(--cell, 34px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: calc(var(--cell, 34px) * 0.6);
+    border-radius: 6px;
+    user-select: none;
+  }
+  .cell.wall   { background: #0a0a12; }
+  .cell.floor  { background: #1c2030; }
+  .cell.target { background: #1c2030; box-shadow: inset 0 0 0 3px rgba(255,217,61,0.55); }
+  .cell.box    { background: #8a5a2b; }
+  .cell.box-on { background: #3a7d44; }
+  .cell.player { background: rgba(108,140,255,0.28); }
+
+  .level-tab {
+    background: var(--bg-soft); color: var(--text-dim);
+    border: 1px solid var(--card-border);
+    padding: 7px 12px; border-radius: 999px; font-size: 13px;
+    cursor: pointer; transition: all .18s; font-family: inherit;
+  }
+  .level-tab.active { color: #fff; border-color: var(--accent); background: rgba(108,140,255,0.18); }
+  .level-tab:hover { color: var(--text); }
+  .toolbar-btns { display: flex; gap: 8px; flex-wrap: wrap; }
+  .ghost-btn {
+    background: var(--bg-soft); color: var(--text);
+    border: 1px solid var(--card-border);
+    padding: 9px 14px; border-radius: 10px; cursor: pointer;
+    font-size: 14px; font-family: inherit; transition: all .18s;
+  }
+  .ghost-btn:hover { border-color: var(--accent); filter: brightness(1.15); }
+  .dpad { display: grid; grid-template-columns: repeat(3, 44px); grid-template-rows: repeat(2, 44px); gap: 6px; justify-content: center; }
+  .dpad button { padding: 0; font-size: 20px; }
+  .dpad .up { grid-column: 2; grid-row: 1; }
+  .dpad .left { grid-column: 1; grid-row: 2; }
+  .dpad .down { grid-column: 2; grid-row: 2; }
+  .dpad .right { grid-column: 3; grid-row: 2; }
+</style>
+</head>
+<body>
+<div class="game-wrap">
+  <div class="game-header">
+    <a class="back-link" href="index.html">← 返回</a>
+    <h1 class="game-title">推箱子</h1>
+    <button class="icon-btn" id="soundBtn" onclick="toggleSound()">🔊 音效</button>
+  </div>
+
+  <div class="game-stats">
+    <div class="stat"><div class="stat-label">关卡</div><div class="stat-value" id="levelNo">1</div></div>
+    <div class="stat"><div class="stat-label">步数</div><div class="stat-value stat-score" id="steps">0</div></div>
+    <div class="stat"><div class="stat-label">最佳</div><div class="stat-value stat-best" id="bestSteps">—</div></div>
+  </div>
+
+  <div class="game-stage">
+    <div class="board" id="board"></div>
+    <div class="game-overlay" id="overlay" style="display:none;">
+      <div class="game-overlay-title" id="overlayTitle"></div>
+      <div class="game-overlay-sub" id="overlaySub"></div>
+      <button id="overlayBtn" onclick="onOverlay()">下一关 ▶</button>
+    </div>
+  </div>
+
+  <div class="game-toolbar">
+    <div class="toolbar-btns" id="levelTabs"></div>
+    <div class="toolbar-btns">
+      <button class="ghost-btn" onclick="undo()">↶ 撤销</button>
+      <button class="ghost-btn" onclick="loadLevel(cur)">🔄 重开</button>
+    </div>
+    <div class="dpad">
+      <button class="up"    onclick="move(0,-1)">▲</button>
+      <button class="left"  onclick="move(-1,0)">◀</button>
+      <button class="down"  onclick="move(0,1)">▼</button>
+      <button class="right" onclick="move(1,0)">▶</button>
+    </div>
+    <p class="hint">方向键 / WASD 移动 · 把 📦 推到 ★ 目标点 · 推不动时先绕路</p>
+  </div>
+</div>
+
+<script src="assets/common.js"></script>
+<script>
+  const LEVELS = [
+    { name: '第 1 关', map: [
+      '#######',
+      '#     #',
+      '#@$  .#',
+      '#     #',
+      '#######' ] },
+    { name: '第 2 关', map: [
+      '#######',
+      '#  .  #',
+      '#     #',
+      '#  $  #',
+      '#  @  #',
+      '#######' ] },
+    { name: '第 3 关', map: [
+      '########',
+      '#      #',
+      '# .  $ #',
+      '#      #',
+      '#  @   #',
+      '#      #',
+      '# $  . #',
+      '#      #',
+      '########' ] },
+    { name: '第 4 关', map: [
+      '########',
+      '#  .   #',
+      '#  $   #',
+      '#      #',
+      '#   @  #',
+      '#  $   #',
+      '#  .   #',
+      '#      #',
+      '########' ] },
+    { name: '第 5 关', map: [
+      '########',
+      '#  .   #',
+      '#  $   #',
+      '#      #',
+      '# .$@$.#',
+      '#      #',
+      '#  $   #',
+      '#  .   #',
+      '########' ] },
+    { name: '第 6 关', map: [
+      '#########',
+      '#       #',
+      '# .$  $.#',
+      '#       #',
+      '#   @   #',
+      '#       #',
+      '# .$  $.#',
+      '#       #',
+      '#########' ] },
+    { name: '第 7 关', map: [
+      '#########',
+      '#       #',
+      '# .   . #',
+      '# $   $ #',
+      '#   @   #',
+      '# $   $ #',
+      '# .   . #',
+      '#       #',
+      '#########' ] },
+    { name: '第 8 关', map: [
+      '##########',
+      '#        #',
+      '# .$  $. #',
+      '#        #',
+      '#   @    #',
+      '#        #',
+      '# .$  $. #',
+      '#        #',
+      '##########' ] }
+  ];
+  let cur = 0;
+  let rows = 0, cols = 0;
+  let walls = [], targets = new Set(), boxes = new Set(), player = { r: 0, c: 0 };
+  let steps = 0, history = [], solved = false;
+
+  const boardEl = document.getElementById('board');
+  const overlay  = document.getElementById('overlay');
+  const ovTitle  = document.getElementById('overlayTitle');
+  const ovSub    = document.getElementById('overlaySub');
+  const ovBtn    = document.getElementById('overlayBtn');
+
+  function key(r, c) { return r + ',' + c; }
+  function bestKey() { return 'bestSokoban_L' + cur; }
+  function loadBest() {
+    const v = localStorage.getItem(bestKey());
+    document.getElementById('bestSteps').textContent = v ? v : '—';
+  }
+  function computeCell() {
+    const maxW = Math.min(560, window.innerWidth - 36);
+    const size = Math.max(18, Math.floor((maxW - 20) / cols));
+    document.documentElement.style.setProperty('--cell', size + 'px');
+  }
+  function renderLevelTabs() {
+    const box = document.getElementById('levelTabs');
+    box.innerHTML = '';
+    LEVELS.forEach((lv, i) => {
+      const b = document.createElement('button');
+      b.className = 'level-tab' + (i === cur ? ' active' : '');
+      b.textContent = lv.name;
+      b.onclick = () => { if (i !== cur) { cur = i; loadLevel(cur); } };
+      box.appendChild(b);
+    });
+  }
+  function parseMap(map) {
+    rows = map.length;
+    cols = Math.max(...map.map(r => r.length));
+    walls = []; targets = new Set(); boxes = new Set(); player = { r: 0, c: 0 };
+    for (let r = 0; r < rows; r++) {
+      walls[r] = [];
+      const line = map[r];
+      for (let c = 0; c < cols; c++) {
+        const ch = line[c] || ' ';
+        walls[r][c] = (ch === '#');
+        if (ch === '.' || ch === '*') targets.add(key(r, c));
+        if (ch === '$' || ch === '*') boxes.add(key(r, c));
+        if (ch === '@' || ch === '+') player = { r, c };
+      }
+    }
+  }
+  function buildGrid() {
+    boardEl.style.gridTemplateColumns = 'repeat(' + cols + ', var(--cell, 34px))';
+    boardEl.innerHTML = '';
+    for (let r = 0; r < rows; r++)
+      for (let c = 0; c < cols; c++) {
+        const el = document.createElement('div');
+        boardEl.appendChild(el);
+      }
+    paintAll();
+  }
+  function paintAll() {
+    let i = 0;
+    for (let r = 0; r < rows; r++)
+      for (let c = 0; c < cols; c++) {
+        const el = boardEl.children[i++];
+        const isWall = walls[r][c];
+        const isTarget = targets.has(key(r, c));
+        const isBox = boxes.has(key(r, c));
+        const isPlayer = player.r === r && player.c === c;
+        let cls = 'cell ', txt = '';
+        if (isWall) cls += 'wall';
+        else {
+          cls += 'floor';
+          if (isTarget) cls += ' target';
+          if (isBox) cls += isTarget ? ' box-on' : ' box';
+          else if (isPlayer) cls += ' player';
+          if (isBox) txt = '📦';
+          else if (isPlayer) txt = '🧍';
+          else if (isTarget) txt = '★';
+        }
+        el.className = cls;
+        el.textContent = txt;
+      }
+  }
+  function isWall(r, c) { return r < 0 || c < 0 || r >= rows || c >= cols || walls[r][c]; }
+  function hasBox(r, c) { return boxes.has(key(r, c)); }
+  function snapshot() {
+    history.push({ p: { ...player }, b: new Set(boxes), s: steps });
+    if (history.length > 200) history.shift();
+  }
+  function move(dc, dr) {
+    if (solved) return;
+    const nr = player.r + dr, nc = player.c + dc;
+    if (isWall(nr, nc)) return;
+    if (hasBox(nr, nc)) {
+      const br = nr + dr, bc = nc + dc;
+      if (isWall(br, bc) || hasBox(br, bc)) return;
+      snapshot();
+      boxes.delete(key(nr, nc)); boxes.add(key(br, bc));
+    } else {
+      snapshot();
+    }
+    player = { r: nr, c: nc };
+    steps++;
+    document.getElementById('steps').textContent = steps;
+    paintAll();
+    beep(300, 0.04);
+    if (checkWin()) win();
+  }
+  function undo() {
+    if (solved || !history.length) return;
+    const s = history.pop();
+    player = s.p; boxes = s.b; steps = s.s;
+    document.getElementById('steps').textContent = steps;
+    paintAll();
+    beep(220, 0.04);
+  }
+  function checkWin() {
+    for (const t of targets) if (!boxes.has(t)) return false;
+    return true;
+  }
+  function win() {
+    solved = true;
+    beep(880, 0.18, 'triangle');
+    const best = localStorage.getItem(bestKey());
+    let msg = '用 ' + steps + ' 步';
+    let record = false;
+    if (!best || steps < +best) { localStorage.setItem(bestKey(), steps); record = true; }
+    if (cur === LEVELS.length - 1) {
+      ovTitle.className = 'game-overlay-title win';
+      ovTitle.textContent = '🏆 全部通关！';
+      ovSub.textContent = msg + (record ? '　🎉 新纪录' : '');
+      ovBtn.textContent = '重玩本关';
+      ovBtn.onclick = () => loadLevel(cur);
+    } else {
+      ovTitle.className = 'game-overlay-title win';
+      ovTitle.textContent = '✅ 过关';
+      ovSub.textContent = msg + (record ? '　🎉 新纪录' : '');
+      ovBtn.textContent = '下一关 ▶';
+      ovBtn.onclick = () => loadLevel(cur + 1);
+    }
+    overlay.style.display = 'flex';
+    loadBest();
+  }
+  function onOverlay() { ovBtn.onclick(); }
+  function loadLevel(i) {
+    cur = Math.max(0, Math.min(LEVELS.length - 1, i));
+    parseMap(LEVELS[cur].map);
+    computeCell();
+    steps = 0; history = []; solved = false;
+    document.getElementById('levelNo').textContent = cur + 1;
+    document.getElementById('steps').textContent = '0';
+    renderLevelTabs();
+    buildGrid();
+    loadBest();
+    overlay.style.display = 'none';
+  }
+  document.addEventListener('keydown', e => {
+    const k = e.key.toLowerCase();
+    if (['arrowup','w'].includes(k)) { e.preventDefault(); move(0, -1); }
+    else if (['arrowdown','s'].includes(k)) { e.preventDefault(); move(0, 1); }
+    else if (['arrowleft','a'].includes(k)) { e.preventDefault(); move(-1, 0); }
+    else if (['arrowright','d'].includes(k)) { e.preventDefault(); move(1, 0); }
+    else if (k === 'z') undo();
+  });
+  window.addEventListener('resize', computeCell);
+  loadLevel(0);
+</script>
+</body>
+</html>

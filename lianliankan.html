@@ -1,0 +1,390 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta name="description" content="连连看小游戏：点击两个相同图案，路径拐弯不超过两次即可消除，含重排与提示，3 关递进，纯前端、打开即玩。" />
+<title>连连看</title>
+<link rel="stylesheet" href="assets/common.css" />
+<style>
+  .board {
+    display: grid;
+    gap: 3px;
+    background: var(--board-bg);
+    padding: 10px;
+    border-radius: 10px;
+    max-width: 100%;
+    overflow: auto;
+  }
+  .cell {
+    width: var(--cell, 40px);
+    height: var(--cell, 40px);
+    display: flex; align-items: center; justify-content: center;
+    font-size: calc(var(--cell, 40px) * 0.6);
+    border-radius: 8px;
+    background: #1c2030;
+    cursor: pointer;
+    user-select: none;
+    transition: transform .1s, box-shadow .1s, background .1s;
+  }
+  .cell.empty { background: transparent; cursor: default; }
+  .cell:hover:not(.empty) { background: #2a3042; }
+  .cell.sel { box-shadow: 0 0 0 3px var(--accent); transform: scale(1.06); }
+  .cell.hint { animation: pulse .55s ease 3; }
+  @keyframes pulse { 50% { box-shadow: 0 0 0 3px var(--best); } }
+
+  .level-tab {
+    background: var(--bg-soft); color: var(--text-dim);
+    border: 1px solid var(--card-border);
+    padding: 7px 12px; border-radius: 999px; font-size: 13px;
+    cursor: pointer; transition: all .18s; font-family: inherit;
+  }
+  .level-tab.active { color: #fff; border-color: var(--accent); background: rgba(108,140,255,0.18); }
+  .level-tab:hover { color: var(--text); }
+  .toolbar-btns { display: flex; gap: 8px; flex-wrap: wrap; }
+  .ghost-btn {
+    background: var(--bg-soft); color: var(--text);
+    border: 1px solid var(--card-border);
+    padding: 9px 14px; border-radius: 10px; cursor: pointer;
+    font-size: 14px; font-family: inherit; transition: all .18s;
+  }
+  .ghost-btn:hover { border-color: var(--accent); filter: brightness(1.15); }
+
+  /* 连接动画覆盖层 */
+  .game-stage { position: relative; overflow: visible; }
+  .link-svg { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; z-index: 6; overflow: visible; }
+  .link-line { stroke: var(--accent); fill: none; stroke-width: 3; stroke-linecap: round; stroke-linejoin: round; filter: drop-shadow(0 0 5px var(--accent)); opacity: 0; animation: linkIn .15s ease-out forwards; }
+  .link-dot { fill: var(--best); stroke: #fff; stroke-width: 1; opacity: 0; animation: linkIn .15s ease-out forwards; }
+  @keyframes linkIn { from { opacity: 0; } to { opacity: 1; } }
+</style>
+</head>
+<body>
+<div class="game-wrap">
+  <div class="game-header">
+    <a class="back-link" href="index.html">← 返回</a>
+    <h1 class="game-title">连连看</h1>
+    <button class="icon-btn" id="soundBtn" onclick="toggleSound()">🔊 音效</button>
+  </div>
+
+  <div class="game-stats">
+    <div class="stat"><div class="stat-label">关卡</div><div class="stat-value" id="levelNo">1</div></div>
+    <div class="stat"><div class="stat-label">配对</div><div class="stat-value stat-score" id="pairs">0</div></div>
+    <div class="stat"><div class="stat-label">时间</div><div class="stat-value" id="time">0:00</div></div>
+  </div>
+
+  <div class="game-stage">
+    <div class="board" id="board"></div>
+    <svg class="link-svg" id="linkSvg"></svg>
+    <div class="game-overlay" id="overlay" style="display:none;">
+      <div class="game-overlay-title" id="overlayTitle"></div>
+      <div class="game-overlay-sub" id="overlaySub"></div>
+      <button id="overlayBtn" onclick="onOverlay()">下一关 ▶</button>
+    </div>
+  </div>
+
+  <div class="game-toolbar">
+    <div class="toolbar-btns" id="levelTabs"></div>
+    <div class="toolbar-btns">
+      <button class="ghost-btn" onclick="hint()">💡 提示</button>
+      <button class="ghost-btn" onclick="shuffleRemaining(true)">🔀 重排</button>
+      <button class="ghost-btn" onclick="loadLevel(cur)">🔄 重开</button>
+    </div>
+    <p class="hint">点击两个相同图案，连线拐弯 ≤ 2 次即可消除 · 卡住可重排或提示</p>
+  </div>
+</div>
+
+<script src="assets/common.js"></script>
+<script>
+  const EMOJIS = ['🍎','🍊','🍋','🍇','🍉','🍓','🍒','🥝','🍑','🍍','🥥','🥭','🍌','🥑','🌽','🍆'];
+  const LEVELS = [
+    { r: 7, c: 8,  kinds: 10 },
+    { r: 8, c: 10, kinds: 12 },
+    { r: 9, c: 10, kinds: 14 }
+  ];
+  let cur = 0, rows = 0, cols = 0;
+  let grid = [];
+  let selected = null, pairs = 0, totalPairs = 0;
+  let started = false, solved = false, seconds = 0, timer = null;
+  let hintTimer = null, busy = false;
+
+  const boardEl = document.getElementById('board');
+  const linkSvg  = document.getElementById('linkSvg');
+  const stage    = document.querySelector('.game-stage');
+  const overlay  = document.getElementById('overlay');
+  const ovTitle  = document.getElementById('overlayTitle');
+  const ovSub    = document.getElementById('overlaySub');
+  const ovBtn    = document.getElementById('overlayBtn');
+  const timeEl   = document.getElementById('time');
+
+  function bestKey() { return 'bestLL_L' + cur; }
+  function loadBest() {
+    const v = localStorage.getItem(bestKey());
+    // 仅在统计栏"时间"旁不单列最佳，这里忽略显示，避免布局过宽
+  }
+  function fmt(s) { const m = Math.floor(s / 60); return m + ':' + String(s % 60).padStart(2, '0'); }
+  function computeCell() {
+    const maxW = Math.min(560, window.innerWidth - 36);
+    const size = Math.max(22, Math.floor((maxW - 20) / cols));
+    document.documentElement.style.setProperty('--cell', size + 'px');
+  }
+  function renderLevelTabs() {
+    const box = document.getElementById('levelTabs');
+    box.innerHTML = '';
+    LEVELS.forEach((lv, i) => {
+      const b = document.createElement('button');
+      b.className = 'level-tab' + (i === cur ? ' active' : '');
+      b.textContent = '第 ' + (i + 1) + ' 关';
+      b.onclick = () => { if (i !== cur) { cur = i; loadLevel(cur); } };
+      box.appendChild(b);
+    });
+  }
+  function genLevel() {
+    const L = LEVELS[cur];
+    rows = L.r; cols = L.c;
+    const total = rows * cols;
+    const arr = [];
+    const kinds = Math.min(EMOJIS.length, L.kinds);
+    for (let i = 0; i < total / 2; i++) {
+      const e = EMOJIS[Math.floor(Math.random() * kinds)];
+      arr.push(e, e);
+    }
+    for (let i = arr.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [arr[i], arr[j]] = [arr[j], arr[i]];
+    }
+    grid = [];
+    let k = 0;
+    for (let r = 0; r < rows; r++) { grid[r] = []; for (let c = 0; c < cols; c++) grid[r][c] = arr[k++]; }
+    totalPairs = total / 2;
+  }
+  function buildGrid() {
+    linkSvg.innerHTML = '';
+    boardEl.style.gridTemplateColumns = 'repeat(' + cols + ', var(--cell, 40px))';
+    boardEl.innerHTML = '';
+    for (let r = 0; r < rows; r++)
+      for (let c = 0; c < cols; c++) {
+        const el = document.createElement('div');
+        el.className = 'cell';
+        el.addEventListener('click', () => onClick(r, c));
+        boardEl.appendChild(el);
+      }
+    paintAll();
+  }
+  function paintAll() {
+    let i = 0;
+    for (let r = 0; r < rows; r++)
+      for (let c = 0; c < cols; c++) {
+        const el = boardEl.children[i++];
+        const v = grid[r][c];
+        if (v === null) { el.className = 'cell empty'; el.textContent = ''; }
+        else { el.className = 'cell'; el.textContent = v; }
+      }
+    if (selected) {
+      const sel = boardEl.children[selected.r * cols + selected.c];
+      if (sel && grid[selected.r][selected.c] !== null) sel.classList.add('sel');
+    }
+  }
+  // ===== 路径判定 =====
+  function isPassable(r, c) {
+    if (r < 0 || c < 0 || r >= rows || c >= cols) return true; // 边界外视为空
+    return grid[r][c] === null;
+  }
+  function hClear(r, c1, c2) {
+    const [a, b] = c1 < c2 ? [c1, c2] : [c2, c1];
+    for (let c = a + 1; c < b; c++) if (!isPassable(r, c)) return false;
+    return true;
+  }
+  function vClear(c, r1, r2) {
+    const [a, b] = r1 < r2 ? [r1, r2] : [r2, r1];
+    for (let r = a + 1; r < b; r++) if (!isPassable(r, c)) return false;
+    return true;
+  }
+  function conn01Path(p, q) {
+    if (p.r === q.r && hClear(p.r, p.c, q.c)) return [p, q];
+    if (p.c === q.c && vClear(p.c, p.r, q.r)) return [p, q];
+    const ca = { r: p.r, c: q.c };
+    if (isPassable(ca.r, ca.c) && hClear(p.r, p.c, ca.c) && vClear(ca.c, ca.r, q.r)) return [p, ca, q];
+    const cb = { r: q.r, c: p.c };
+    if (isPassable(cb.r, cb.c) && vClear(p.c, p.r, cb.r) && hClear(q.r, cb.c, q.c)) return [p, cb, q];
+    return null;
+  }
+  function findPath(p, q) {
+    const direct = conn01Path(p, q);
+    if (direct) return direct;
+    const dirs = [[0, 1], [0, -1], [1, 0], [-1, 0]];
+    for (const [dr, dc] of dirs) {
+      let r = p.r + dr, c = p.c + dc;
+      while (r >= -1 && r <= rows && c >= -1 && c <= cols) {
+        if (!isPassable(r, c)) break;
+        const sub = conn01Path({ r, c }, q);
+        if (sub) return [p, ...sub];
+        r += dr; c += dc;
+      }
+    }
+    return null;
+  }
+  function canConnect(p, q) { return findPath(p, q) !== null; }
+
+  // ===== 连接动画 =====
+  function gridToPixel(r, c) {
+    const sRect = stage.getBoundingClientRect();
+    const c0 = boardEl.children[0].getBoundingClientRect();
+    const w = c0.width + 3, h = c0.height + 3; // 含 gap
+    const ox = c0.left - sRect.left + c0.width / 2;
+    const oy = c0.top - sRect.top + c0.height / 2;
+    return { x: ox + c * w, y: oy + r * h };
+  }
+  function showLink(path, cb) {
+    try {
+      linkSvg.innerHTML = '';
+      const ns = 'http://www.w3.org/2000/svg';
+      const pts = path.map(p => gridToPixel(p.r, p.c));
+      const poly = document.createElementNS(ns, 'polyline');
+      poly.setAttribute('points', pts.map(p => p.x + ',' + p.y).join(' '));
+      poly.setAttribute('class', 'link-line');
+      linkSvg.appendChild(poly);
+      pts.forEach(p => {
+        const dot = document.createElementNS(ns, 'circle');
+        dot.setAttribute('cx', p.x); dot.setAttribute('cy', p.y); dot.setAttribute('r', '3.5');
+        dot.setAttribute('class', 'link-dot');
+        linkSvg.appendChild(dot);
+      });
+    } catch (e) { /* 画线失败不影响消除 */ }
+    // 无论如何都调度消除，确保图案一定消失且 busy 复位
+    setTimeout(() => {
+      try { cb(); } finally { linkSvg.innerHTML = ''; }
+    }, 340);
+  }
+  function hasAnyMove() {
+    const cells = [];
+    for (let r = 0; r < rows; r++)
+      for (let c = 0; c < cols; c++)
+        if (grid[r][c] !== null) cells.push({ r, c, v: grid[r][c] });
+    for (let i = 0; i < cells.length; i++)
+      for (let j = i + 1; j < cells.length; j++)
+        if (cells[i].v === cells[j].v && canConnect(cells[i], cells[j])) return true;
+    return false;
+  }
+  function shuffleRemaining(manual) {
+    const positions = [], vals = [];
+    for (let r = 0; r < rows; r++)
+      for (let c = 0; c < cols; c++)
+        if (grid[r][c] !== null) { positions.push({ r, c }); vals.push(grid[r][c]); }
+    if (vals.length === 0) return;
+    let tries = 0;
+    do {
+      for (let i = vals.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [vals[i], vals[j]] = [vals[j], vals[i]];
+      }
+      positions.forEach((p, i) => { grid[p.r][p.c] = vals[i]; });
+      tries++;
+    } while (!hasAnyMove() && tries < 20);
+    selected = null;
+    paintAll();
+    if (manual) beep(440, 0.06);
+  }
+  function hint() {
+    if (solved) return;
+    const cells = [];
+    for (let r = 0; r < rows; r++)
+      for (let c = 0; c < cols; c++)
+        if (grid[r][c] !== null) cells.push({ r, c, v: grid[r][c] });
+    for (let i = 0; i < cells.length; i++)
+      for (let j = i + 1; j < cells.length; j++)
+        if (cells[i].v === cells[j].v && canConnect(cells[i], cells[j])) {
+          clearHint();
+          [cells[i], cells[j]].forEach(p => boardEl.children[p.r * cols + p.c].classList.add('hint'));
+          hintTimer = setTimeout(clearHint, 1800);
+          return;
+        }
+  }
+  function clearHint() {
+    for (const el of boardEl.children) el.classList.remove('hint');
+  }
+  function startTimer() {
+    timer = setInterval(() => { seconds++; timeEl.textContent = fmt(seconds); }, 1000);
+  }
+  function onClick(r, c) {
+    if (busy || solved) return;
+    if (grid[r][c] === null) return;
+    if (!started) { started = true; startTimer(); }
+    clearHint();
+    if (!selected) { selected = { r, c }; paintAll(); return; }
+    if (selected.r === r && selected.c === c) { selected = null; paintAll(); return; }
+    if (grid[selected.r][selected.c] === grid[r][c]) {
+      const path = findPath(selected, { r, c });
+      if (path) {
+        busy = true;
+        const a = boardEl.children[selected.r * cols + selected.c];
+        const b = boardEl.children[r * cols + c];
+        a.classList.add('sel'); b.classList.add('sel');
+        showLink(path, () => {
+          try {
+            grid[selected.r][selected.c] = null;
+            grid[r][c] = null;
+            selected = null;
+            pairs++;
+            document.getElementById('pairs').textContent = pairs;
+            beep(520, 0.06);
+            paintAll();
+            if (allCleared()) win();
+            else if (!hasAnyMove()) shuffleRemaining(false);
+          } finally {
+            busy = false;
+          }
+        });
+        return;
+      }
+    }
+    selected = { r, c };
+    paintAll();
+  }
+  function allCleared() {
+    for (let r = 0; r < rows; r++)
+      for (let c = 0; c < cols; c++)
+        if (grid[r][c] !== null) return false;
+    return true;
+  }
+  function win() {
+    solved = true; clearInterval(timer);
+    beep(880, 0.18, 'triangle');
+    const best = localStorage.getItem(bestKey());
+    let msg = '用时 ' + fmt(seconds);
+    let record = false;
+    if (!best || seconds < +best) { localStorage.setItem(bestKey(), seconds); record = true; }
+    if (cur === LEVELS.length - 1) {
+      ovTitle.className = 'game-overlay-title win';
+      ovTitle.textContent = '🏆 全部通关！';
+      ovSub.textContent = msg + (record ? '　🎉 新纪录' : '');
+      ovBtn.textContent = '重玩本关';
+      ovBtn.onclick = () => loadLevel(cur);
+    } else {
+      ovTitle.className = 'game-overlay-title win';
+      ovTitle.textContent = '🎉 过关';
+      ovSub.textContent = msg + (record ? '　🎉 新纪录' : '');
+      ovBtn.textContent = '下一关 ▶';
+      ovBtn.onclick = () => loadLevel(cur + 1);
+    }
+    overlay.style.display = 'flex';
+  }
+  function onOverlay() { ovBtn.onclick(); }
+  function loadLevel(i) {
+    cur = Math.max(0, Math.min(LEVELS.length - 1, i));
+    clearInterval(timer);
+    if (hintTimer) clearTimeout(hintTimer);
+    genLevel();
+    computeCell();
+    selected = null; pairs = 0; seconds = 0; started = false; solved = false;
+    timeEl.textContent = '0:00';
+    document.getElementById('levelNo').textContent = cur + 1;
+    document.getElementById('pairs').textContent = '0';
+    renderLevelTabs();
+    buildGrid();
+    overlay.style.display = 'none';
+  }
+  window.addEventListener('resize', computeCell);
+  loadLevel(0);
+</script>
+</body>
+</html>
