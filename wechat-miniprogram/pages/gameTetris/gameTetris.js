@@ -349,5 +349,21 @@ Page({
     if (this.gameOver) this.onReset();
     else this.togglePause();
   },
+  // 分享给微信好友：标题带上当前分数，path 深链到本游戏页，好友点卡片直接进游戏
+  onShareAppMessage() {
+    const score = this.score || 0;
+    const lines = this.lines || 0;
+    return {
+      title: '我在「椒哥休闲游戏」俄罗斯方块拿了 ' + score + ' 分（消 ' + lines + ' 行），来挑战！',
+      path: 'pages/gameTetris/gameTetris'
+    };
+  },
+  // 分享到朋友圈
+  onShareTimeline() {
+    const score = this.score || 0;
+    return {
+      title: '我在「椒哥休闲游戏」俄罗斯方块拿了 ' + score + ' 分！'
+    };
+  },
   goBack() { wx.navigateBack(); }
 });

@@ -98,6 +98,30 @@ page {
   font-weight: 700;
 }
 
+/* 工具栏右侧按钮组 */
+.toolbar-btns {
+  display: flex;
+  align-items: center;
+  gap: 16rpx;
+}
+
+/* 分享按钮（原生 button + open-type=share） */
+.share-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #b56cff, #ff9ec4);
+  color: #fff;
+  padding: 20rpx 36rpx;
+  border-radius: 20rpx;
+  font-size: 30rpx;
+  font-weight: 700;
+  line-height: 1.2;
+  margin: 0;
+  border: none;
+}
+.share-btn::after { border: none; }
+
 /* ============ 统一遮罩层（胜利 / 失败）============
  * 标题颜色用修饰类区分语义：.fail=失败(红)  .win=胜利(黄) */
 .game-overlay {

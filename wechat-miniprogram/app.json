@@ -9,9 +9,10 @@
   "window": {
     "navigationBarBackgroundColor": "#0f1117",
     "navigationBarTextStyle": "white",
-    "navigationBarTitleText": "小游戏合集",
+    "navigationBarTitleText": "椒哥休闲游戏",
     "backgroundColor": "#0f1117"
   },
   "style": "v2",
-  "sitemapLocation": "sitemap.json"
+  "sitemapLocation": "sitemap.json",
+  "__usePrivacyCheck__": true
 }

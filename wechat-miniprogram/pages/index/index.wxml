@@ -27,4 +27,18 @@
       <view class="card-desc">弹球击碎砖块</view>
     </view>
   </view>
+
+  <view class="tip-footer">适度游戏益脑，沉迷游戏伤身。本合集为免费休闲游戏，不含任何内购。</view>
+
+  <!-- 隐私授权弹窗（首次进入） -->
+  <view class="privacy-mask" wx:if="{{showPrivacy}}">
+    <view class="privacy-box">
+      <view class="privacy-title">隐私授权</view>
+      <view class="privacy-text">感谢使用《椒哥休闲游戏》。我们重视您的隐私保护，使用前请阅读并同意<text class="privacy-link" bindtap="openPrivacy">《隐私保护指引》</text>。</view>
+      <view class="privacy-btns">
+        <view class="privacy-btn cancel" bindtap="closePrivacy">暂不使用</view>
+        <view class="privacy-btn agree" bindtap="agreePrivacy">同意并继续</view>
+      </view>
+    </view>
+  </view>
 </view>

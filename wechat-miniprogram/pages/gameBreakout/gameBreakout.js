@@ -302,5 +302,21 @@ Page({
     if (this.state === 'over') this.onReset();
     else if (this.state === 'paused') this.resume();
   },
+  // 分享给微信好友：标题带上当前分数，path 深链到本游戏页，好友点卡片直接进游戏
+  onShareAppMessage() {
+    const score = this.score || 0;
+    const level = this.level || 1;
+    return {
+      title: '我在「椒哥休闲游戏」打砖块拿了 ' + score + ' 分（第 ' + level + ' 关），来挑战！',
+      path: 'pages/gameBreakout/gameBreakout'
+    };
+  },
+  // 分享到朋友圈
+  onShareTimeline() {
+    const score = this.score || 0;
+    return {
+      title: '我在「椒哥休闲游戏」打砖块拿了 ' + score + ' 分！'
+    };
+  },
   goBack() { wx.navigateBack(); }
 });

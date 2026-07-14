@@ -28,3 +28,58 @@
 .card-emoji { font-size: 72rpx; }
 .card-name { font-size: 36rpx; font-weight: 700; color: #e8ecf4; }
 .card-desc { font-size: 24rpx; color: #9aa3b8; }
+
+.tip-footer {
+  margin-top: 48rpx;
+  text-align: center;
+  font-size: 22rpx;
+  color: #6b7390;
+  line-height: 1.7;
+  padding: 0 20rpx;
+}
+
+/* 隐私授权弹窗 */
+.privacy-mask {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(0, 0, 0, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+}
+.privacy-box {
+  width: 560rpx;
+  background: #1c2030;
+  border: 1rpx solid #2a3042;
+  border-radius: 28rpx;
+  padding: 44rpx 36rpx;
+}
+.privacy-title {
+  font-size: 34rpx;
+  font-weight: 800;
+  color: #e8ecf4;
+  text-align: center;
+  margin-bottom: 20rpx;
+}
+.privacy-text {
+  font-size: 26rpx;
+  color: #9aa3b8;
+  line-height: 1.7;
+}
+.privacy-link { color: #6c8cff; }
+.privacy-btns {
+  display: flex;
+  gap: 20rpx;
+  margin-top: 36rpx;
+}
+.privacy-btn {
+  flex: 1;
+  text-align: center;
+  padding: 22rpx 0;
+  border-radius: 18rpx;
+  font-size: 28rpx;
+  font-weight: 700;
+}
+.privacy-btn.cancel { background: #2a3042; color: #9aa3b8; }
+.privacy-btn.agree { background: linear-gradient(135deg, #6c8cff, #b56cff); color: #fff; }

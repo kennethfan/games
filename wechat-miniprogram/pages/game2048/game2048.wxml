@@ -42,6 +42,9 @@
 
   <view class="game-toolbar">
     <view class="hint">滑动屏幕合并相同数字，凑出 <text class="b">2048</text></view>
-    <view class="btn" bindtap="onReset">重新开始</view>
+    <view class="toolbar-btns">
+      <view class="btn" bindtap="onReset">重新开始</view>
+      <button class="share-btn" open-type="share">分享战绩</button>
+    </view>
   </view>
 </view>
