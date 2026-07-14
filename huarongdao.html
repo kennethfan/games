@@ -5,11 +5,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="icon" type="image/svg+xml" href="favicon.svg" />
     <link rel="manifest" href="manifest.webmanifest" />
-    <meta name="description" content="华容道小游戏：移动木块，护送曹操从底部出口逃脱，经典益智解谜，纯前端、打开即玩。" />
+    <meta name="description" content="拯救女神小游戏：移动木块，护送女神从底部出口逃脱，经典益智解谜，纯前端、打开即玩。" />
     <meta name="theme-color" content="#0f1117" />
     <link rel="stylesheet" href="assets/common.css" />
     <script src="assets/common.js"></script>
-    <title>华容道</title>
+    <title>拯救女神</title>
     <style>
         .board {
             position: relative;
@@ -68,7 +68,7 @@
         .piece.vert .pname { writing-mode: vertical-rl; font-size: 22px; letter-spacing: 3px; }
         .piece.cao .pname  { font-size: 34px; }
 
-        /* 棋子配色（曹操突出、关羽绿、四将蓝紫家族、兵灰蓝） */
+        /* 棋子配色（女神突出、关羽绿、四将蓝紫家族、兵灰蓝） */
         .piece.cao   { background: linear-gradient(135deg, #ff7a7a, #ff5c5c); }
         .piece.guan  { background: linear-gradient(135deg, #3ed598, #28a06f); }
         .piece.p1    { background: linear-gradient(135deg, #6c8cff, #4a6cff); }
@@ -126,7 +126,7 @@
     <div class="game-wrap">
         <header class="game-header">
             <a class="back-link" href="index.html">← 返回</a>
-            <h1 class="game-title">华容道</h1>
+            <h1 class="game-title">拯救女神</h1>
             <button id="soundBtn" class="icon-btn" onclick="toggleSound()">🔊</button>
         </header>
 
@@ -149,7 +149,7 @@
                     <div class="cell"></div><div class="cell"></div><div class="cell"></div><div class="cell"></div>
                 </div>
                 <div class="piece-layer" id="pieceLayer"></div>
-                <div class="exit-hint">▼ 曹操逃出此口 ▼</div>
+                <div class="exit-hint">▼ 女神逃出此口 ▼</div>
                 <!-- 胜利遮罩 -->
                 <div class="game-overlay" id="overlay" style="display: none;">
                     <div class="game-overlay-title win" id="overlayTitle"></div>
@@ -160,7 +160,7 @@
         </section>
 
         <footer class="game-toolbar">
-            <div class="hint">点击木块，朝<text class="b">你点的那一侧</text>滑入空位，把<text class="b">曹操</text>送到下方出口</div>
+            <div class="hint">点击木块，朝<text class="b">你点的那一侧</text>滑入空位，把<text class="b">女神</text>送到下方出口</div>
             <button onclick="restart()">重新开始</button>
         </footer>
     </div>
@@ -176,86 +176,86 @@
                 name: '横刀立马',
                 minSteps: 116,
                 pieces: [
-                    { id: 'cao',   name: '曹操', rows: 2, cols: 2, r: 0, c: 1, cls: 'cao'  },
-                    { id: 'guan',  name: '关羽', rows: 1, cols: 2, r: 2, c: 1, cls: 'guan' },
-                    { id: 'zhang', name: '张飞', rows: 2, cols: 1, r: 0, c: 0, cls: 'p1'   },
-                    { id: 'zhao',  name: '赵云', rows: 2, cols: 1, r: 0, c: 3, cls: 'p2'   },
-                    { id: 'ma',    name: '马超', rows: 2, cols: 1, r: 2, c: 0, cls: 'p3'   },
-                    { id: 'huang', name: '黄忠', rows: 2, cols: 1, r: 2, c: 3, cls: 'p4'   },
-                    { id: 'b1',    name: '兵',   rows: 1, cols: 1, r: 3, c: 1, cls: 'bing' },
-                    { id: 'b2',    name: '兵',   rows: 1, cols: 1, r: 3, c: 2, cls: 'bing' },
-                    { id: 'b3',    name: '兵',   rows: 1, cols: 1, r: 4, c: 0, cls: 'bing' },
-                    { id: 'b4',    name: '兵',   rows: 1, cols: 1, r: 4, c: 3, cls: 'bing' }
+                    { id: 'cao',   name: '女神', rows: 2, cols: 2, r: 0, c: 1, cls: 'cao'  },
+                    { id: 'guan',  name: '帅哥', rows: 1, cols: 2, r: 2, c: 1, cls: 'guan' },
+                    { id: 'zhang', name: '老外', rows: 2, cols: 1, r: 0, c: 0, cls: 'p1'   },
+                    { id: 'zhao',  name: '总裁', rows: 2, cols: 1, r: 0, c: 3, cls: 'p2'   },
+                    { id: 'ma',    name: '渣男', rows: 2, cols: 1, r: 2, c: 0, cls: 'p3'   },
+                    { id: 'huang', name: '黄毛', rows: 2, cols: 1, r: 2, c: 3, cls: 'p4'   },
+                    { id: 'b1',    name: '舔狗',   rows: 1, cols: 1, r: 3, c: 1, cls: 'bing' },
+                    { id: 'b2',    name: '舔狗',   rows: 1, cols: 1, r: 3, c: 2, cls: 'bing' },
+                    { id: 'b3',    name: '舔狗',   rows: 1, cols: 1, r: 4, c: 0, cls: 'bing' },
+                    { id: 'b4',    name: '舔狗',   rows: 1, cols: 1, r: 4, c: 3, cls: 'bing' }
                 ]
             },
             zhihui: {
                 name: '指挥若定',
                 minSteps: 100,
                 pieces: [
-                    { id: 'cao',   name: '曹操', rows: 2, cols: 2, r: 0, c: 1, cls: 'cao'  },
-                    { id: 'huang', name: '黄忠', rows: 2, cols: 1, r: 0, c: 0, cls: 'p1'   },
-                    { id: 'ma',    name: '马超', rows: 2, cols: 1, r: 0, c: 3, cls: 'p2'   },
-                    { id: 'guan',  name: '关羽', rows: 1, cols: 2, r: 2, c: 1, cls: 'guan' },
-                    { id: 'b1',    name: '兵',   rows: 1, cols: 1, r: 2, c: 0, cls: 'bing' },
-                    { id: 'b2',    name: '兵',   rows: 1, cols: 1, r: 2, c: 3, cls: 'bing' },
-                    { id: 'zhang', name: '张飞', rows: 2, cols: 1, r: 3, c: 0, cls: 'p3'   },
-                    { id: 'zhao',  name: '赵云', rows: 2, cols: 1, r: 3, c: 3, cls: 'p4'   },
-                    { id: 'b3',    name: '兵',   rows: 1, cols: 1, r: 3, c: 1, cls: 'bing' },
-                    { id: 'b4',    name: '兵',   rows: 1, cols: 1, r: 3, c: 2, cls: 'bing' }
+                    { id: 'cao',   name: '女神', rows: 2, cols: 2, r: 0, c: 1, cls: 'cao'  },
+                    { id: 'huang', name: '黄毛', rows: 2, cols: 1, r: 0, c: 0, cls: 'p1'   },
+                    { id: 'ma',    name: '渣男', rows: 2, cols: 1, r: 0, c: 3, cls: 'p2'   },
+                    { id: 'guan',  name: '帅哥', rows: 1, cols: 2, r: 2, c: 1, cls: 'guan' },
+                    { id: 'b1',    name: '舔狗',   rows: 1, cols: 1, r: 2, c: 0, cls: 'bing' },
+                    { id: 'b2',    name: '舔狗',   rows: 1, cols: 1, r: 2, c: 3, cls: 'bing' },
+                    { id: 'zhang', name: '老外', rows: 2, cols: 1, r: 3, c: 0, cls: 'p3'   },
+                    { id: 'zhao',  name: '总裁', rows: 2, cols: 1, r: 3, c: 3, cls: 'p4'   },
+                    { id: 'b3',    name: '舔狗',   rows: 1, cols: 1, r: 3, c: 1, cls: 'bing' },
+                    { id: 'b4',    name: '舔狗',   rows: 1, cols: 1, r: 3, c: 2, cls: 'bing' }
                 ]
             },
             bingfen: {
                 name: '兵分三路',
                 minSteps: 92,
                 pieces: [
-                    { id: 'b1',    name: '兵',   rows: 1, cols: 1, r: 0, c: 0, cls: 'bing' },
-                    { id: 'cao',   name: '曹操', rows: 2, cols: 2, r: 0, c: 1, cls: 'cao'  },
-                    { id: 'b2',    name: '兵',   rows: 1, cols: 1, r: 0, c: 3, cls: 'bing' },
-                    { id: 'zhang', name: '张飞', rows: 2, cols: 1, r: 1, c: 0, cls: 'p1'   },
-                    { id: 'zhao',  name: '赵云', rows: 2, cols: 1, r: 1, c: 3, cls: 'p2'   },
-                    { id: 'guan',  name: '关羽', rows: 1, cols: 2, r: 2, c: 1, cls: 'guan' },
-                    { id: 'ma',    name: '马超', rows: 2, cols: 1, r: 3, c: 0, cls: 'p3'   },
-                    { id: 'huang', name: '黄忠', rows: 2, cols: 1, r: 3, c: 3, cls: 'p4'   },
-                    { id: 'b3',    name: '兵',   rows: 1, cols: 1, r: 3, c: 1, cls: 'bing' },
-                    { id: 'b4',    name: '兵',   rows: 1, cols: 1, r: 3, c: 2, cls: 'bing' }
+                    { id: 'b1',    name: '舔狗',   rows: 1, cols: 1, r: 0, c: 0, cls: 'bing' },
+                    { id: 'cao',   name: '女神', rows: 2, cols: 2, r: 0, c: 1, cls: 'cao'  },
+                    { id: 'b2',    name: '舔狗',   rows: 1, cols: 1, r: 0, c: 3, cls: 'bing' },
+                    { id: 'zhang', name: '老外', rows: 2, cols: 1, r: 1, c: 0, cls: 'p1'   },
+                    { id: 'zhao',  name: '总裁', rows: 2, cols: 1, r: 1, c: 3, cls: 'p2'   },
+                    { id: 'guan',  name: '帅哥', rows: 1, cols: 2, r: 2, c: 1, cls: 'guan' },
+                    { id: 'ma',    name: '渣男', rows: 2, cols: 1, r: 3, c: 0, cls: 'p3'   },
+                    { id: 'huang', name: '黄毛', rows: 2, cols: 1, r: 3, c: 3, cls: 'p4'   },
+                    { id: 'b3',    name: '舔狗',   rows: 1, cols: 1, r: 3, c: 1, cls: 'bing' },
+                    { id: 'b4',    name: '舔狗',   rows: 1, cols: 1, r: 3, c: 2, cls: 'bing' }
                 ]
             },
             qitou: {
                 name: '齐头并进',
                 minSteps: 85,
                 pieces: [
-                    { id: 'zhang', name: '张飞', rows: 2, cols: 1, r: 0, c: 0, cls: 'p1'   },
-                    { id: 'cao',   name: '曹操', rows: 2, cols: 2, r: 0, c: 1, cls: 'cao'  },
-                    { id: 'zhao',  name: '赵云', rows: 2, cols: 1, r: 0, c: 3, cls: 'p2'   },
-                    { id: 'b1',    name: '兵',   rows: 1, cols: 1, r: 2, c: 0, cls: 'bing' },
-                    { id: 'b2',    name: '兵',   rows: 1, cols: 1, r: 2, c: 1, cls: 'bing' },
-                    { id: 'b3',    name: '兵',   rows: 1, cols: 1, r: 2, c: 2, cls: 'bing' },
-                    { id: 'b4',    name: '兵',   rows: 1, cols: 1, r: 2, c: 3, cls: 'bing' },
-                    { id: 'huang', name: '黄忠', rows: 2, cols: 1, r: 3, c: 0, cls: 'p3'   },
-                    { id: 'guan',  name: '关羽', rows: 1, cols: 2, r: 3, c: 1, cls: 'guan' },
-                    { id: 'ma',    name: '马超', rows: 2, cols: 1, r: 3, c: 3, cls: 'p4'   }
+                    { id: 'zhang', name: '老外', rows: 2, cols: 1, r: 0, c: 0, cls: 'p1'   },
+                    { id: 'cao',   name: '女神', rows: 2, cols: 2, r: 0, c: 1, cls: 'cao'  },
+                    { id: 'zhao',  name: '总裁', rows: 2, cols: 1, r: 0, c: 3, cls: 'p2'   },
+                    { id: 'b1',    name: '舔狗',   rows: 1, cols: 1, r: 2, c: 0, cls: 'bing' },
+                    { id: 'b2',    name: '舔狗',   rows: 1, cols: 1, r: 2, c: 1, cls: 'bing' },
+                    { id: 'b3',    name: '舔狗',   rows: 1, cols: 1, r: 2, c: 2, cls: 'bing' },
+                    { id: 'b4',    name: '舔狗',   rows: 1, cols: 1, r: 2, c: 3, cls: 'bing' },
+                    { id: 'huang', name: '黄毛', rows: 2, cols: 1, r: 3, c: 0, cls: 'p3'   },
+                    { id: 'guan',  name: '帅哥', rows: 1, cols: 2, r: 3, c: 1, cls: 'guan' },
+                    { id: 'ma',    name: '渣男', rows: 2, cols: 1, r: 3, c: 3, cls: 'p4'   }
                 ]
             },
             binglin: {
                 name: '兵临曹营',
                 minSteps: 49,
                 pieces: [
-                    { id: 'b1',    name: '兵',   rows: 1, cols: 1, r: 0, c: 0, cls: 'bing' },
-                    { id: 'cao',   name: '曹操', rows: 2, cols: 2, r: 0, c: 1, cls: 'cao'  },
-                    { id: 'b2',    name: '兵',   rows: 1, cols: 1, r: 0, c: 3, cls: 'bing' },
-                    { id: 'b3',    name: '兵',   rows: 1, cols: 1, r: 1, c: 0, cls: 'bing' },
-                    { id: 'b4',    name: '兵',   rows: 1, cols: 1, r: 1, c: 3, cls: 'bing' },
-                    { id: 'zhang', name: '张飞', rows: 2, cols: 1, r: 2, c: 0, cls: 'p1'   },
-                    { id: 'guan',  name: '关羽', rows: 1, cols: 2, r: 2, c: 1, cls: 'guan' },
-                    { id: 'zhao',  name: '赵云', rows: 2, cols: 1, r: 2, c: 3, cls: 'p2'   },
-                    { id: 'huang', name: '黄忠', rows: 2, cols: 1, r: 3, c: 1, cls: 'p3'   },
-                    { id: 'ma',    name: '马超', rows: 2, cols: 1, r: 3, c: 2, cls: 'p4'   }
+                    { id: 'b1',    name: '舔狗',   rows: 1, cols: 1, r: 0, c: 0, cls: 'bing' },
+                    { id: 'cao',   name: '女神', rows: 2, cols: 2, r: 0, c: 1, cls: 'cao'  },
+                    { id: 'b2',    name: '舔狗',   rows: 1, cols: 1, r: 0, c: 3, cls: 'bing' },
+                    { id: 'b3',    name: '舔狗',   rows: 1, cols: 1, r: 1, c: 0, cls: 'bing' },
+                    { id: 'b4',    name: '舔狗',   rows: 1, cols: 1, r: 1, c: 3, cls: 'bing' },
+                    { id: 'zhang', name: '老外', rows: 2, cols: 1, r: 2, c: 0, cls: 'p1'   },
+                    { id: 'guan',  name: '帅哥', rows: 1, cols: 2, r: 2, c: 1, cls: 'guan' },
+                    { id: 'zhao',  name: '总裁', rows: 2, cols: 1, r: 2, c: 3, cls: 'p2'   },
+                    { id: 'huang', name: '黄毛', rows: 2, cols: 1, r: 3, c: 1, cls: 'p3'   },
+                    { id: 'ma',    name: '渣男', rows: 2, cols: 1, r: 3, c: 2, cls: 'p4'   }
                 ]
             }
         };
         const LEVEL_ORDER = ['hdlm', 'zhihui', 'bingfen', 'qitou', 'binglin'];
 
-        // 胜利：曹操占据底部出口四格
+        // 胜利：女神占据底部出口四格
         const WIN_CELLS = ['3,1', '3,2', '4,1', '4,2'];
 
         const movesEl   = document.getElementById('moves');
@@ -409,7 +409,7 @@
             if (moves <= min) {
                 msg = '🏆 完美！仅用 ' + moves + ' 步达到最少步数！';
             } else {
-                msg = '用 ' + moves + ' 步让曹操脱身！（参考最少 ' + min + ' 步）';
+                msg = '用 ' + moves + ' 步让女神脱身！（参考最少 ' + min + ' 步）';
             }
             const isNew = (best === 0 || moves < best);
             if (isNew) {
