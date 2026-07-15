@@ -71,11 +71,11 @@
         const PADDLE_H = 12;               // 挡板高
         const PADDLE_SPEED = 7;            // 挡板键盘移动速度
         const BALL_R = 7;                  // 球半径
-        const BRICK_ROWS = 5;              // 砖块行数
+        const BRICK_ROWS = 11;             // 砖块行数
         const BRICK_COLS = 9;              // 砖块列数
         const BRICK_H = 18;                // 砖块高
         const BRICK_GAP = 4;               // 砖块间距
-        const TOP_OFFSET = 45;             // 砖块区距顶部
+        const TOP_OFFSET = 10;             // 砖块区距顶部
         const SIDE_MARGIN = 15;            // 砖块区左右边距
         const MAX_LIVES = 3;
 
@@ -90,6 +90,22 @@
         let bricks;                        // 砖块数组
         let ballSpeed;                     // 当前球速（每关递增）
         const keys = {};                   // 记录按下的键
+
+        // 美女图片（背景与砖块共用 assets/goddess.png）
+        const girlImg = new Image();
+        girlImg.src = 'assets/goddess.png';
+
+        // 整图铺满画布（cover，避免拉伸变形），并叠加半透明压暗层保证小球/挡板可见
+        function drawBackground() {
+            const iw = girlImg.naturalWidth, ih = girlImg.naturalHeight;
+            if (!(girlImg.complete && iw)) return;
+            const scale = Math.max(W / iw, H / ih);
+            const dw = iw * scale, dh = ih * scale;
+            const dx = (W - dw) / 2, dy = (H - dh) / 2;
+            ctx.drawImage(girlImg, dx, dy, dw, dh);
+            ctx.fillStyle = 'rgba(15,17,23,0.5)';
+            ctx.fillRect(0, 0, W, H);
+        }
 
         function resetBall() {
             ball = {
@@ -252,6 +268,9 @@
 
         function draw() {
             ctx.clearRect(0, 0, W, H);
+
+            // 背景（美女图片）
+            drawBackground();
 
             // 砖块
             for (const b of bricks) {
