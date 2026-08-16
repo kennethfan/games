@@ -133,7 +133,6 @@
         let tiles = [];                  // 所有存活的方块（带唯一引用）
         let score = 0;
         let best = 0;
-        let won = false;
         let over = false;
         let animating = false;           // 动画期间锁，防止快速连按导致状态错乱
 
@@ -143,13 +142,19 @@
             32: '#7d7bff', 64: '#9b6cff', 128: '#b56cff', 256: '#c56cd0',
             512: '#d76cae', 1024: '#ff7eb6', 2048: '#ff9ec4'
         };
+        // 2048 以上的高位数字：循环一组高对比浅色，保证一直累加时仍有层级区分
+        const HIGH_COLORS = ['#ffb3d1', '#ffc5a8', '#ffe08a', '#b6f0a8', '#a8e6ff', '#cdb4ff'];
 
         function colorFor(v) {
             if (v === 0) return '#11162a';
-            return COLORS[v] || '#3c3a32';
+            if (COLORS[v]) return COLORS[v];
+            // 4096(2^12) 起按对数取色循环，支持无限累加
+            const idx = Math.log2(v) - 12;
+            return HIGH_COLORS[((idx % HIGH_COLORS.length) + HIGH_COLORS.length) % HIGH_COLORS.length];
         }
         function textColor(v) {
-            return '#eef2ff';
+            // 浅色背景用深色文字，保证可读性
+            return HIGH_COLORS.includes(colorFor(v)) ? '#1a1430' : '#eef2ff';
         }
         function fontSizeFor(v) {
             const len = String(v).length;
@@ -212,7 +217,6 @@
             tiles.forEach(t => { if (t.el.parentNode) t.el.parentNode.removeChild(t.el); });
             tiles = [];
             score = 0;
-            won = false;
             over = false;
             animating = false;
             scoreEl.textContent = '0';
@@ -233,7 +237,6 @@
 
         function move(dir) {
             if (over || animating) return;
-            if (won) hideOverlay(); // 胜利后可继续挑战
 
             let moved = false;
             let gained = 0;
@@ -293,11 +296,7 @@
             const board = Array.from({ length: SIZE }, () => Array(SIZE).fill(0));
             tiles.forEach(t => board[t.r][t.c] = t.value);
 
-            if (!won && board.flat().includes(2048)) {
-                won = true;
-                showOverlay('你赢了!', '按方向键继续挑战', 'win');
-                beep(880, 0.18, 'square', 0.05);
-            } else if (!hasMoves(board)) {
+            if (!hasMoves(board)) {
                 over = true;
                 showOverlay('游戏结束', '得分 ' + score, 'fail');
                 beep(120, 0.3, 'sawtooth', 0.05);
